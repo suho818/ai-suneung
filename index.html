@@ -19,6 +19,18 @@
 <meta name="twitter:description" content="AI 안경 끼고 감독관 몰래 수능 보기. 1교시 국어부터 4교시 탐구까지, 들키면 전부 무효.">
 <meta name="twitter:image" content="https://suho818.github.io/ai-suneung/og.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231E1F23'/%3E%3Ccircle cx='20' cy='34' r='11' fill='none' stroke='%2346E08A' stroke-width='5'/%3E%3Ccircle cx='44' cy='34' r='11' fill='none' stroke='%2346E08A' stroke-width='5'/%3E%3Cpath d='M31 33h2' stroke='%2346E08A' stroke-width='5'/%3E%3Ccircle cx='52' cy='14' r='6' fill='%23D4435A'/%3E%3C/svg%3E">
+<script>
+/* 방문 통계(Google Analytics 4). GitHub Pages 주소에서만 켜져요. 이름 같은 개인정보는 보내지 않아요. */
+window.GA_ID = "G-76ZJ7BERM6";
+(function () {
+  var id = window.GA_ID;
+  if (!id || !/\.github\.io$/.test(location.hostname)) return;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag("js", new Date()); window.gtag("config", id);
+  var s = document.createElement("script"); s.async = true; s.src = "https://www.googletagmanager.com/gtag/js?id=" + id; document.head.appendChild(s);
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600;700&family=Nanum+Gothic+Coding:wght@400;700&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
@@ -417,6 +429,7 @@ const S = { yaw: 0, pitch: -0.4, tYaw: 0, tPitch: -0.4 };
 function loadSave() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); return s && typeof s.seg === "number" && s.seg < SCHED.length ? s : null; } catch (e) { return null; } }
 function saveRun() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(RUN)); } catch (e) {} }
 function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+const track = (name, params) => { try { if (window.gtag) window.gtag("event", name, params || {}); } catch (e) {} };
 function segName(def) { return def.kind === "exam" ? `${def.period}교시 ${def.short}` : def.label; }
 function renderIntroState() {
   const s = loadSave();
@@ -974,6 +987,7 @@ function beginRun(resume, name, examNo) {
   if (!RUN) { RUN = newRun(); RUN.name = name || "수험생"; RUN.examNo = examNo || newExamNo(); clearSave(); }
   if (!RUN.name) RUN.name = "수험생";
   if (!RUN.examNo) RUN.examNo = newExamNo();
+  track("exam_start", { resume: RUN.seg > 0, segment: segName(SCHED[RUN.seg]) });
   ui.nameScreen.hidden = true;
   try { document.fonts.load(`800 46px "Nanum Myeongjo"`, RUN.name).then(() => { drawPaper(); drawOMR(); }, () => {}); } catch (e) {}
   if (RUN.erasers === undefined) RUN.erasers = 3;
@@ -1005,7 +1019,7 @@ function enterSeg(i, fresh) {
   paperMesh.visible = def.kind === "exam"; omrMesh.visible = def.kind === "exam";
   lunch.visible = !!def.lunch;
   drawBoard();
-  if (def.kind === "exam") startExam(def, fresh);
+  if (def.kind === "exam") { track("period_start", { segment: segName(def) }); startExam(def, fresh); }
   else if (def.kind === "break") startBreak(def, fresh);
   else startSwap(def);
   drawPaper(); drawOMR();
@@ -1293,6 +1307,7 @@ function caught(seer) {
   seer.route = []; seer.state = "caught"; seer.moving = false;
   speak(seer, wasCharging ? `${nm()} 학생, 그거 스마트 안경 충전기죠?` : `${nm()} 학생, 잠깐 그 안경 좀 벗어볼까요?`, 3);
   sfx("caught"); vib([90, 60, 140]);
+  track("caught", { segment: segName(P.def), question: P.def.kind === "exam" ? P.qi + 1 : 0, by: pname(seer), charging: wasCharging, scans: RUN.scans, erasers: RUN.thrown || 0 });
   clearSave();
 }
 function updateCine(dt) {
@@ -1349,6 +1364,7 @@ function showResult(kind, r, cc) {
     else if (r.charged >= 120) title = ["충전의 달인", `쉬는시간마다 들키지 않고 ${Math.round(r.charged)}%를 채웠어요.`];
     else if (avg >= 7) title = ["찍기의 달인", "운에 모든 걸 맡겼어요."];
     else title = ["무난한 수험생", "감독관은 아무것도 눈치채지 못했어요. 아마도."];
+    track("exam_complete", { title: title[0], avg_grade: Math.round(avg * 10) / 10, glasses_used: used, fooled: r.fooled, max_susp: maxS, erasers: r.thrown || 0 });
     ui.result.innerHTML = `
       <div class="report">
         <div class="rep-head"><span>2027학년도 대학딸깍능력시험 성적통지표</span><span>평균 ${avg.toFixed(1)}등급</span></div>
