@@ -302,7 +302,7 @@ button{font:inherit;color:inherit}
         <li>이건 게임이에요. 실제 시험에선 스마트 안경을 쓰기만 해도 부정행위예요.</li>
       </ol>
     </div>
-    <p class="note">전체 약 11분 걸려요. 시간이 바뀔 때마다 자동 저장돼요.</p>
+    <p class="note">전체 약 12분 걸려요. 시간이 바뀔 때마다 자동 저장돼요.</p>
     <div class="btns">
       <button class="primary" id="startBtn" type="button">1교시 입실하기</button>
       <button class="secondary" id="resumeBtn" type="button" hidden>이어서 응시</button>
@@ -636,7 +636,8 @@ const S = { yaw: 0, pitch: -0.4, tYaw: 0, tPitch: -0.4 };
 function loadSave() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); return s && typeof s.seg === "number" && s.seg < SCHED.length ? s : null; } catch (e) { return null; } }
 function saveRun() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(RUN)); } catch (e) {} }
 function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
-const track = (name, params) => { try { if (window.gtag) window.gtag("event", name, params || {}); } catch (e) {} };
+const DEV_NAME = "개발자한";   // 이 이름으로 입실하면 개발자 모드
+const track = (name, params) => { if (RUN && RUN.dev) return; try { if (window.gtag) window.gtag("event", name, params || {}); } catch (e) {} };
 function segName(def) { return def.kind === "exam" ? `${def.period}교시 ${def.short}` : def.label; }
 function renderIntroState() {
   const s = loadSave();
@@ -1264,6 +1265,8 @@ function beginRun(resume, name, examNo) {
   if (!RUN) { RUN = newRun(); RUN.name = name || "수험생"; RUN.examNo = examNo || newExamNo(); clearSave(); }
   if (!RUN.name) RUN.name = "수험생";
   if (!RUN.examNo) RUN.examNo = newExamNo();
+  RUN.dev = RUN.name === DEV_NAME;
+  if (RUN.dev) setTimeout(() => cap("dev", "(개발자 모드 · 의심도 0, 배터리 그대로)", 3.4, "warn"), 2600);
   track("exam_start", { resume: RUN.seg > 0, segment: segName(SCHED[RUN.seg]) });
   ui.nameScreen.hidden = true;
   try { document.fonts.load(`800 46px "Nanum Myeongjo"`, RUN.name).then(() => { drawPaper(); drawOMR(); }, () => {}); } catch (e) {}
@@ -1395,7 +1398,7 @@ function showAns() {
   q.ai = Math.random() < D.halluc ? pick([0, 1, 2, 3].filter((i) => i !== q.a)) : q.a;
   q.conf = Math.floor(rand(91, 100));
   q.scanned = true; q.nScan = (q.nScan || 0) + 1;
-  const cost = D.costMin + Math.floor(Math.random() * (D.costMax - D.costMin + 1));   // 스캔마다 8~12% 랜덤
+  const cost = RUN.dev ? 0 : D.costMin + Math.floor(Math.random() * (D.costMax - D.costMin + 1));   // 스캔마다 8~12% 랜덤
   RUN.scans++; RUN.battery = Math.max(0, RUN.battery - cost); if (RUN.battery <= 0) RUN.zero = true;
   P.scanning = false; P.hudOn = true; P.hudT = 3.6;
   ui.glass.classList.remove("on"); ui.led.classList.remove("on"); ui.glass.style.setProperty("--p", 0); ui.centerMsg.hidden = true;
@@ -1665,7 +1668,7 @@ function showResult(kind, r, cc) {
       return `<div><dt>${sel || name}</dt><dd>${g}</dd><small>${c} / ${qs.length}</small></div>`;
     }).join("");
     const avg = sum / total, maxS = Math.round(r.maxSusp);
-    const isBest = best === null || avg < best;
+    const isBest = !r.dev && (best === null || avg < best);
     if (isBest) { best = avg; try { localStorage.setItem(BEST_KEY, JSON.stringify(best)); } catch (e) {} }
     const st = runStats(r, maxS), owned = loadTitles();
     const rankOf = (name, i) => (name === "눈치 빠른 녀석" && st.used >= 10 ? TITLES.findIndex(([n]) => n === "강심장") + 0.5 : i);
@@ -1673,7 +1676,7 @@ function showResult(kind, r, cc) {
       .map(([[name, , desc]]) => ({ name, desc: desc(st), isNew: !owned.has(name) }));
     if (!earned.length) earned.push({ name: "무난한 수험생", desc: "감독관은 아무것도 눈치채지 못했어요. 아마도.", isNew: false });
     for (const e of earned) if (TITLES.some(([n]) => n === e.name)) owned.add(e.name);
-    try { localStorage.setItem(TITLE_KEY, JSON.stringify([...owned])); } catch (e) {}
+    if (!r.dev) try { localStorage.setItem(TITLE_KEY, JSON.stringify([...owned])); } catch (e) {}
     const have = TITLES.filter(([n]) => owned.has(n)).length;
     track("exam_complete", { titles: earned.map((e) => e.name).join(", "), title_count: earned.length, avg_grade: Math.round(avg * 10) / 10, glasses_used: used, fooled: r.fooled, max_susp: maxS, erasers: r.thrown || 0 });
     for (const e of earned) track("title_earned", { title: e.name, first_time: e.isNew });
@@ -1703,7 +1706,7 @@ function showResult(kind, r, cc) {
       </div>
       <p class="share-hint">↑ 이 성적표만 캡처하면 돼요</p>
       ${titleHtml}
-      <p class="note">${isBest ? "최고 기록이에요." : `최고 기록은 평균 ${best.toFixed(1)}등급이에요.`} 영역마다 문항 수는 실제 수능보다 적어요.</p>
+      <p class="note">${r.dev ? "개발자 모드라 최고 기록과 칭호 도감에 저장하지 않았어요." : isBest ? "최고 기록이에요." : best !== null ? `최고 기록은 평균 ${best.toFixed(1)}등급이에요.` : ""} 영역마다 문항 수는 실제 수능보다 적어요.</p>
       <p class="eerie">성적표를 받았다. 일단 치킨부터 시키자.</p>
       ${again}`;
   }
@@ -1813,7 +1816,7 @@ function update(dt) {
   const seen = rate > 0 && !P.locked;
   if (seen) { RUN.susp += rate * dt; P.dangerT -= dt; if (P.dangerT <= 0) { sfx("danger"); vib(25); P.dangerT = 0.35; } }
   else { RUN.susp -= (def.kind === "break" ? 6 : 9) * dt; P.dangerT = 0; }
-  RUN.susp = clamp(RUN.susp, 0, 100); RUN.maxSusp = Math.max(RUN.maxSusp, RUN.susp);
+  RUN.susp = RUN.dev ? 0 : clamp(RUN.susp, 0, 100); RUN.maxSusp = Math.max(RUN.maxSusp, RUN.susp);
   ui.app.classList.toggle("danger", seen);
   if (RUN.susp > 55) { P.beatT -= dt; if (P.beatT <= 0) { sfx("beat"); P.beatT = 0.85 - (RUN.susp - 55) / 100; } }
   if (RUN.susp >= 100 && !P.locked) { caught(seer || main); return; }
