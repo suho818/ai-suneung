@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>딸깍능력시험 3D</title>
+<meta name="description" content="AI 안경 끼고 감독관 몰래 수능 보기. 1교시 국어부터 4교시 탐구까지, 들키면 전부 무효.">
+<meta name="theme-color" content="#ECEAE3">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="딸깍능력시험 3D">
+<meta property="og:description" content="AI 안경 끼고 감독관 몰래 수능 보기. 1교시 국어부터 4교시 탐구까지, 들키면 전부 무효.">
+<meta property="og:url" content="https://suho818.github.io/ai-suneung/">
+<meta property="og:image" content="https://suho818.github.io/ai-suneung/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="딸깍능력시험 3D">
+<meta name="twitter:description" content="AI 안경 끼고 감독관 몰래 수능 보기. 1교시 국어부터 4교시 탐구까지, 들키면 전부 무효.">
+<meta name="twitter:image" content="https://suho818.github.io/ai-suneung/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231E1F23'/%3E%3Ccircle cx='20' cy='34' r='11' fill='none' stroke='%2346E08A' stroke-width='5'/%3E%3Ccircle cx='44' cy='34' r='11' fill='none' stroke='%2346E08A' stroke-width='5'/%3E%3Cpath d='M31 33h2' stroke='%2346E08A' stroke-width='5'/%3E%3Ccircle cx='52' cy='14' r='6' fill='%23D4435A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600;700&family=Nanum+Gothic+Coding:wght@400;700&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* 1인칭 시점: 3D 교실 위에 안경테와 AI 안경 HUD(초록 글씨). 시작·결과 화면은 문제지 표지와 성적통지표 */
+  --paper:#ECEAE3;
+  --sheet:#F8F6F0;
+  --ink:#1E1F23;
+  --muted:#6E6C66;
+  --omr:#D4435A;
+  --omr-tint:#FBEDEF;
+  --hud:#46E08A;
+  --hud-dim:rgba(70,224,138,.45);
+  --hud-bg:rgba(8,16,12,.64);
+  --alert:#FF5B6E;
+  --amber:#F2C14E;
+  --f-display:"Black Han Sans","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-exam:"Nanum Myeongjo","AppleMyungjo","Batang","Noto Serif KR",serif;
+  --f-ui:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-hud:"Nanum Gothic Coding","D2Coding",ui-monospace,Menlo,monospace;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{background:#141416;color:var(--ink);font-family:var(--f-ui);-webkit-tap-highlight-color:transparent;overscroll-behavior:none;word-break:keep-all;overflow-wrap:anywhere}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--omr);outline-offset:2px}
+
+#app{position:relative;height:100%;overflow:hidden;user-select:none;-webkit-user-select:none}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#hud{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.frame{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.tint{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(ellipse at center,rgba(70,224,138,0) 50%,rgba(70,224,138,.16))}
+#app.glow .tint{opacity:1}
+.danger-edge{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .12s;box-shadow:inset 0 0 70px 22px rgba(212,67,90,.8)}
+#app.danger .danger-edge{opacity:1}
+#app.intro .hud,#app.intro .tint,#app.intro .frame{display:none}
+
+.hud{position:absolute;inset:0;pointer-events:none;font-family:var(--f-hud);color:var(--hud)}
+.hud-top{position:absolute;top:16px;left:20px;right:20px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.chip{background:var(--hud-bg);border:1px solid var(--hud-dim);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;text-shadow:0 0 6px rgba(70,224,138,.5);white-space:nowrap}
+.led{width:8px;height:8px;border-radius:50%;background:#2A3A30;flex:none}
+.led.on{background:var(--alert);box-shadow:0 0 8px var(--alert)}
+.led.chg{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.timer{font-size:22px;font-weight:700;background:var(--hud-bg);padding:2px 10px;border-radius:8px;font-variant-numeric:tabular-nums;text-shadow:0 0 6px rgba(70,224,138,.5)}
+.timer.low{color:var(--alert)}
+.bat.low{color:var(--alert);border-color:var(--alert)}
+.bat.chg{color:var(--amber);border-color:var(--amber)}
+.hud-row2{position:absolute;top:54px;left:20px;right:20px;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center}
+.susp{display:flex;align-items:center;gap:6px;background:var(--hud-bg);border:1px solid var(--hud-dim);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;min-width:0}
+.bar{flex:1;height:7px;border-radius:999px;background:rgba(70,224,138,.12);overflow:hidden;border:1px solid var(--hud-dim)}
+.bar i{display:block;height:100%;width:0;background:var(--hud)}
+#suspNum{min-width:2.6em;text-align:right;font-variant-numeric:tabular-nums}
+.hud-btn{pointer-events:auto;cursor:pointer;background:var(--hud-bg);border:1px solid var(--hud-dim);color:var(--hud);font-family:var(--f-hud)}
+.seg-banner{position:absolute;left:50%;top:92px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 44px);text-align:center;
+  background:rgba(8,16,12,.8);border:1px solid var(--hud);border-radius:10px;padding:6px 14px;font-size:14px;font-weight:700;line-height:1.45}
+.seg-banner small{display:block;font-size:11px;font-weight:400;opacity:.85}
+.ans-card{position:absolute;left:50%;top:17%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 44px);background:rgba(8,16,12,.8);border:1px solid var(--hud);border-radius:12px;padding:8px 14px;text-align:center;box-shadow:0 0 20px rgba(70,224,138,.3);background-image:repeating-linear-gradient(to bottom,rgba(70,224,138,.06) 0 1px,transparent 1px 3px)}
+.ans-card .k{font-size:11px;opacity:.8}
+.ans-card .a{font-size:20px;font-weight:700;text-shadow:0 0 8px rgba(70,224,138,.7)}
+.ans-card .c{font-size:11px;opacity:.85}
+.center-msg{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);background:var(--hud-bg);border:1px solid var(--hud-dim);border-radius:10px;padding:6px 12px;font-size:13px;font-weight:700;white-space:nowrap}
+.caps{position:absolute;left:20px;right:20px;bottom:108px;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.caps div{background:rgba(8,16,12,.74);padding:3px 8px;border-radius:6px;font-size:12px;color:#CFF7DD;max-width:100%}
+.caps .say{color:#fff;border-left:3px solid var(--hud)}
+.caps .bc{color:#FFF6D6;border-left:3px solid var(--amber)}
+.caps .warn{color:#FFD1D7;border-left:3px solid var(--alert)}
+.hint{position:absolute;left:50%;top:156px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 44px);background:rgba(8,16,12,.82);border:1px dashed var(--hud-dim);border-radius:10px;padding:8px 12px;font-size:12px;line-height:1.6;text-align:center;color:#DFFBE9}
+.controls{position:absolute;left:20px;right:20px;bottom:24px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;pointer-events:none}
+.mid-btn{pointer-events:auto;position:relative;width:96px;height:64px;border:2px solid #F4A7B9;border-radius:14px;background:rgba(8,16,12,.84);color:#F9C9D4;font-family:var(--f-hud);font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;touch-action:manipulation}
+.mid-btn svg{width:30px;height:16px}
+.mid-btn small{font-weight:400;font-size:10px;opacity:.85}
+.mid-btn[aria-pressed="true"]{background:rgba(70,22,36,.94);color:#FFE3EA;box-shadow:0 0 0 3px #F4A7B9,0 0 20px rgba(244,167,185,.5)}
+.mid-btn:disabled{opacity:.45;cursor:not-allowed}
+.look-btn{pointer-events:auto;cursor:pointer;min-width:92px;padding:12px 14px;border-radius:14px;border:1px solid var(--hud);background:var(--hud-bg);color:var(--hud);font-family:var(--f-hud);font-weight:700;font-size:13px}
+.big-btn{pointer-events:auto;position:relative;width:122px;height:78px;border:2px solid var(--hud);border-radius:16px;background:rgba(8,16,12,.84);color:var(--hud);font-family:var(--f-hud);font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;touch-action:none;-webkit-touch-callout:none;overflow:hidden;cursor:pointer}
+.big-btn svg{width:46px;height:20px}
+.big-btn small{font-weight:400;font-size:10px;opacity:.8}
+#glass::after{content:"";position:absolute;left:0;bottom:0;height:5px;width:calc(var(--p,0) * 100%);background:var(--hud)}
+#glass.on{box-shadow:0 0 0 3px var(--hud),0 0 24px rgba(70,224,138,.5)}
+#chargeBtn{border-color:var(--amber);color:var(--amber)}
+#chargeBtn[aria-pressed="true"]{background:rgba(242,193,78,.18);box-shadow:0 0 0 3px var(--amber)}
+
+/* 시작·결과 */
+.screen{position:absolute;left:0;right:0;bottom:0;margin-inline:auto;width:min(100%,480px);z-index:10;background:var(--paper);overflow:auto;padding:16px 16px 22px;display:flex;flex-direction:column;gap:11px}
+#intro{max-height:74%;border-radius:18px 18px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.35);border-top:1.5px solid var(--ink)}
+#result{top:0}
+#nameScreen{top:0}
+.name-title{font-family:var(--f-display);font-weight:400;font-size:clamp(34px,10vw,44px);line-height:1.1;margin:6px 0 0}
+.name-sub{margin:0;font-size:14px;color:var(--muted);line-height:1.5}
+.omr-name{position:relative;display:grid;grid-template-columns:auto 1fr;border:2px solid var(--omr);background:var(--omr-tint);border-radius:6px;overflow:hidden;cursor:text}
+.omr-name:focus-within{outline:3px solid var(--omr);outline-offset:3px}
+.omr-name-lab{background:var(--omr);color:#fff;font-weight:700;font-size:14px;padding:0 12px;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;letter-spacing:.4em}
+.cells{display:grid;grid-template-columns:repeat(4,1fr)}
+.cells i{font-style:normal;height:76px;border-left:1.5px solid var(--omr);display:flex;align-items:center;justify-content:center;font-family:var(--f-exam);font-weight:800;font-size:36px;color:var(--ink);background:var(--sheet)}
+.cells i.cur{box-shadow:inset 0 -5px 0 var(--omr);animation:curblink 1s steps(2) infinite}
+@keyframes curblink{50%{box-shadow:inset 0 -5px 0 transparent}}
+#nameInput{position:absolute;inset:0;width:100%;height:100%;opacity:.01;font-size:16px;border:0;background:transparent;color:transparent;caret-color:transparent;padding:0}
+.idline{display:flex;justify-content:space-between;gap:8px;border:1.5px solid var(--ink);background:var(--sheet);padding:8px 12px;font-size:13px}
+.idline b{font-family:var(--f-hud);letter-spacing:.18em}
+.rep-id{display:flex;justify-content:space-between;gap:8px;padding:7px 10px;border-bottom:1px solid var(--ink);font-size:13px}
+.rep-id b{font-family:var(--f-exam);font-weight:800;font-size:15px}
+.cover-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);gap:8px}
+.type-box{border:1.5px solid var(--ink);color:var(--ink);font-weight:700;padding:1px 6px;flex:none}
+.cover-title{font-family:var(--f-display);font-weight:400;font-size:clamp(44px,14vw,60px);line-height:1;margin:2px 0 0;text-wrap:balance}
+.cover-title em{font-style:normal;color:var(--omr)}
+.cover-title sup{font-size:.36em;vertical-align:top;margin-left:4px;border:2px solid var(--ink);border-radius:6px;padding:0 5px;position:relative;top:.35em}
+.cover-sub{font-family:var(--f-exam);font-weight:800;font-size:15px;margin:0}
+.tt{width:100%;border-collapse:collapse;background:var(--sheet);border:1.5px solid var(--ink);font-size:13px;font-variant-numeric:tabular-nums}
+.tt th,.tt td{border-bottom:1px solid rgba(30,31,35,.35);padding:6px 8px;text-align:left}
+.tt th{background:var(--ink);color:var(--sheet);font-size:11px;font-weight:700}
+.tt tr.rest td{color:var(--muted);font-size:12px;background:#EFEDE6}
+.tt td:first-child{font-weight:700;width:3.4em}
+.notice{border:1.5px solid var(--ink);background:var(--sheet);padding:10px 12px 12px;font-size:13.5px;line-height:1.6}
+.notice h2{font-size:13px;margin:0 0 6px;text-align:center;letter-spacing:.35em}
+.notice ol{margin:0;padding-left:1.3em;display:grid;gap:2px}
+.notice .warn{color:var(--omr);font-weight:700}
+.primary{padding:12px;border-radius:12px;border:2px solid var(--ink);background:var(--omr);color:#fff;font-family:var(--f-display);font-size:24px;letter-spacing:.04em;box-shadow:3px 3px 0 var(--ink);cursor:pointer}
+.primary:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.primary:disabled{opacity:.5;cursor:not-allowed}
+.secondary{padding:11px;border-radius:12px;border:2px solid var(--ink);background:var(--sheet);font-weight:700;font-size:15px;cursor:pointer}
+.best{font-size:12px;color:var(--muted);text-align:center;margin:0}
+.btns{display:grid;gap:8px}
+.err{font-size:13px;color:var(--omr);font-weight:700;margin:0}
+.stamp{align-self:center;margin:18px 0 6px;font-family:var(--f-display);color:var(--omr);border:6px solid var(--omr);border-radius:14px;font-size:68px;line-height:1;padding:6px 22px 2px;transform:rotate(-8deg);animation:stamp .35s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes stamp{from{transform:scale(2.2) rotate(-8deg);opacity:0}to{transform:scale(1) rotate(-8deg);opacity:1}}
+.caught-line{font-family:var(--f-exam);font-weight:800;font-size:19px;text-align:center;margin:6px 0 0;text-wrap:balance}
+.caught-sub{font-size:14px;text-align:center;margin:0;color:var(--muted);text-wrap:balance}
+.report{border:1.5px solid var(--ink);background:var(--sheet)}
+.rep-head{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;background:var(--ink);color:var(--sheet);font-size:12px;font-weight:700}
+.report table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.report th,.report td{border-bottom:1px solid var(--ink);border-right:1px solid var(--ink);padding:6px 5px;text-align:center;font-size:13px}
+.report th:last-child,.report td:last-child{border-right:0}
+.report th{font-size:11px;color:var(--muted);font-weight:700}
+.report td.grade{font-family:var(--f-display);font-size:26px;line-height:1;color:var(--omr)}
+.report td.sel{font-size:11px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;margin:0}
+.stats div{padding:7px 10px;border-right:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+.stats div:nth-child(2n){border-right:0}
+.stats div:nth-last-child(-n+2){border-bottom:0}
+.stats dt{font-size:11px;color:var(--muted)}
+.stats dd{margin:0;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+.title-card{border:2px solid var(--omr);border-radius:10px;padding:10px 12px;background:var(--omr-tint)}
+.title-card .k{font-size:11px;font-weight:700;color:var(--omr)}
+.title-card strong{display:block;font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.2}
+.title-card p{margin:2px 0 0;font-size:13.5px}
+.note{font-size:12px;color:var(--muted);text-align:center;margin:0}
+.eerie{font-family:var(--f-exam);font-weight:800;font-size:14px;text-align:center;margin:0;color:#7A2E3A}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div id="app" class="intro">
+  <canvas id="gl" aria-label="1인칭 교실 화면. 끌어서 둘러보고, 시험지의 보기를 눌러 답해요."></canvas>
+  <canvas id="hud"></canvas>
+  <div class="tint"></div>
+  <svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <defs><filter id="fb" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.1"/></filter></defs>
+    <path filter="url(#fb)" fill="rgba(16,16,18,.93)" fill-rule="evenodd"
+      d="M-6,-6 H106 V106 H-6 Z M2.5,7 Q2.5,2.2 8,2.2 H42 Q46.5,2.2 47.6,4.6 Q50,7.4 52.4,4.6 Q53.5,2.2 58,2.2 H92 Q97.5,2.2 97.5,7 V87 Q97.5,98 86,98 H62 Q56,98 53,93.5 Q50,90.5 47,93.5 Q44,98 38,98 H14 Q2.5,98 2.5,87 Z"/>
+  </svg>
+  <div class="danger-edge"></div>
+
+  <div class="hud">
+    <div class="hud-top">
+      <div class="chip"><span class="led" id="led"></span>AI GLASS</div>
+      <div class="timer" id="timer" aria-label="이번 시간 남은 시간">01:50</div>
+      <div class="chip bat" id="bat">BAT 100%</div>
+    </div>
+    <div class="hud-row2">
+      <div class="chip" id="segChip">1교시 국어 · 1/6</div>
+      <div class="susp" aria-label="의심도"><span>의심도</span><div class="bar"><i id="suspFill"></i></div><span id="suspNum">0%</span></div>
+      <button class="chip hud-btn" id="mute" type="button" aria-pressed="false">소리 ON</button>
+    </div>
+    <div class="seg-banner" id="banner" hidden></div>
+    <div class="ans-card" id="ansCard" hidden>
+      <div class="k" id="ansWork">● 분석 완료</div>
+      <div class="a" id="ansText">정답 ③</div>
+      <div class="c" id="ansConf">확신도 97%</div>
+    </div>
+    <div class="center-msg" id="centerMsg" hidden></div>
+    <div class="caps" id="caps" aria-live="polite"></div>
+    <div class="hint" id="hint" hidden>화면을 끌어서 고개를 돌려요<br>시험지의 보기를 눌러 답을 골라요<br>안경다리를 꾹 누르면 AI가 문제를 읽어요</div>
+    <div class="controls">
+      <button class="look-btn" id="lookBtn" type="button">고개 들기</button>
+      <button class="mid-btn" id="eraserBtn" type="button" aria-pressed="false">
+        <svg viewBox="0 0 30 16" aria-hidden="true"><rect x="2" y="3" width="26" height="10" rx="2" fill="#F6F4EE"/><rect x="13" y="2.5" width="15" height="11" rx="1.5" fill="#2F6DB5"/></svg>
+        <span id="eraserLabel">지우개 ×3</span><small id="eraserSub">눌러서 조준</small>
+      </button>
+      <button class="big-btn" id="glass" type="button" aria-label="안경다리를 꾹 눌러 AI 스캔">
+        <svg viewBox="0 0 46 20" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="4" width="16" height="12" rx="4"/><rect x="27" y="4" width="16" height="12" rx="4"/><path d="M19 9c2-2 6-2 8 0"/><path d="M3 7 0 6M43 7l3-1"/></svg>
+        <span>안경다리 꾹</span><small>누르고 있으면 스캔</small>
+      </button>
+      <button class="big-btn" id="chargeBtn" type="button" aria-pressed="false" hidden>
+        <svg viewBox="0 0 46 20" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="6" y="4" width="30" height="12" rx="3"/><path d="M36 8h4v4h-4"/><path d="M22 6l-4 5h5l-4 5"/></svg>
+        <span id="chargeLabel">보조배터리 연결</span><small id="chargeSub">눌러서 충전 시작</small>
+      </button>
+    </div>
+  </div>
+
+  <div class="screen" id="intro">
+    <div class="cover-top"><span>2027학년도 대학딸깍능력시험 문제지</span><span class="type-box">홀수형</span></div>
+    <h1 class="cover-title">딸깍<em>능력</em>시험<sup>3D</sup></h1>
+    <p class="cover-sub">수능 하루 전체 · 11월 19일(목) · AI 안경 지참</p>
+    <table class="tt" aria-label="시험 시간표">
+      <thead><tr><th>교시</th><th>영역</th><th>시간</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>국어</td><td>08:40 ~ 10:00</td></tr>
+        <tr class="rest"><td></td><td>쉬는시간 · 충전 가능</td><td>10:00 ~ 10:30</td></tr>
+        <tr><td>2</td><td>수학</td><td>10:30 ~ 12:10</td></tr>
+        <tr class="rest"><td></td><td>점심시간 · 충전 가능</td><td>12:10 ~ 13:10</td></tr>
+        <tr><td>3</td><td>영어 (듣기 포함)</td><td>13:10 ~ 14:20</td></tr>
+        <tr class="rest"><td></td><td>쉬는시간 · 충전 가능</td><td>14:20 ~ 14:50</td></tr>
+        <tr><td>4</td><td>한국사 · 탐구 2과목</td><td>14:50 ~ 16:37</td></tr>
+      </tbody>
+    </table>
+    <div class="notice">
+      <h2>수험생 유의사항</h2>
+      <ol>
+        <li><b>화면을 끌면</b> 고개를 돌려요. 시험지의 보기를 눌러 답해요.</li>
+        <li><b>안경다리를 꾹</b> 누르면 AI가 시험지를 읽고 답을 띄워요. 한 번에 배터리 13%가 들어요.</li>
+        <li><b>지우개 ×3</b>: 한 번 누르면 조준, 한 번 더 누르면 던져요. 감독관이 소리 난 쪽을 보고, 주워서 <b>내 자리까지 갖다줘요(다시 ×1)</b>. 돌려줄 땐 바로 옆에서 나를 봐요. 던지는 걸 들키거나 자꾸 던지면 수상해지고, 졸던 부감독도 깨요.</li>
+        <li>배터리는 <b>쉬는시간과 점심시간</b>에만 충전할 수 있어요. 복도 감독관이 문틈으로 들여다볼 때 충전 중이면 들켜요.</li>
+        <li>정감독은 앞에, 부감독은 내 뒤에 있어요. 안경이 소리를 자막으로 알려 줘요. <b>영어 듣기</b> 중에는 감독관이 움직이지 않고 지켜봐요.</li>
+        <li>의심도가 100%가 되면 <span class="warn">적발</span>이에요. 오늘 본 시험 전체가 무효예요.</li>
+        <li>문제는 공부를 해도 못 맞힐 만큼 쓸데없이 자세해요. 정답은 하나예요. <b>수학 [4점]</b>은 안경도 계산이 오래 걸려요. AI도 가끔 자신 있게 틀려요. 답이 수상하면 <b>다시 스캔</b>하세요. 스캔할 때마다 답이 새로 나와요(배터리 13%씩).</li>
+        <li>이건 게임이에요. 실제 시험에선 스마트 안경을 쓰기만 해도 부정행위예요.</li>
+      </ol>
+    </div>
+    <p class="note">전체 약 11분 걸려요. 시간이 바뀔 때마다 자동 저장돼요.</p>
+    <div class="btns">
+      <button class="primary" id="startBtn" type="button">1교시 입실하기</button>
+      <button class="secondary" id="resumeBtn" type="button" hidden>이어서 응시</button>
+    </div>
+    <p class="err" id="glErr" hidden>이 기기나 브라우저에서 3D 화면을 켤 수 없어요. 다른 브라우저로 열어 보세요.</p>
+    <p class="best" id="bestLine">아직 기록이 없어요</p>
+  </div>
+  <div class="screen" id="nameScreen" hidden>
+    <div class="cover-top"><span>2027학년도 대학딸깍능력시험 답안지</span><span class="type-box">홀수형</span></div>
+    <h2 class="name-title">성명을 쓰세요</h2>
+    <p class="name-sub">컴퓨터용 사인펜으로 또박또박 쓰세요. 칸이 네 개라 <b>최대 4자</b>까지 쓸 수 있어요.</p>
+    <label class="omr-name" for="nameInput">
+      <span class="omr-name-lab">성명</span>
+      <span class="cells" id="nameCells" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <input id="nameInput" type="text" maxlength="4" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="성명, 최대 4자">
+    </label>
+    <div class="idline"><span>수험 번호</span><b id="examNo">27041953</b></div>
+    <div class="btns">
+      <button class="primary" id="nameOk" type="button" disabled>작성 완료 · 입실</button>
+      <button class="secondary" id="nameBack" type="button">뒤로</button>
+    </div>
+  </div>
+  <div class="screen" id="result" hidden></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+(() => {
+const $ = (id) => document.getElementById(id);
+const PI = Math.PI, TAU = PI * 2;
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const setText = (el, t) => { if (el.textContent !== t) el.textContent = t; };
+const MARK = ["①", "②", "③", "④"];
+const ui = {
+  app: $("app"), gl: $("gl"), hud: $("hud"), led: $("led"), timer: $("timer"), bat: $("bat"), segChip: $("segChip"),
+  suspFill: $("suspFill"), suspNum: $("suspNum"), mute: $("mute"), banner: $("banner"), ansCard: $("ansCard"), ansText: $("ansText"),
+  ansConf: $("ansConf"), centerMsg: $("centerMsg"), caps: $("caps"), hint: $("hint"), lookBtn: $("lookBtn"), glass: $("glass"),
+  chargeBtn: $("chargeBtn"), chargeLabel: $("chargeLabel"), chargeSub: $("chargeSub"),
+  eraserBtn: $("eraserBtn"), eraserLabel: $("eraserLabel"), eraserSub: $("eraserSub"),
+  nameScreen: $("nameScreen"), nameInput: $("nameInput"), nameCells: $("nameCells"), nameOk: $("nameOk"), nameBack: $("nameBack"), examNo: $("examNo"), intro: $("intro"), result: $("result"),
+  startBtn: $("startBtn"), resumeBtn: $("resumeBtn"), bestLine: $("bestLine"), glErr: $("glErr")
+};
+
+/* ================= 문제 은행 (B급 수능) =================
+   { p: 지문, q: 발문, o: 보기 4개, a: 정답 번호, n: 주석, L: 듣기 대본 } */
+const BANK = {
+  /* 공부해도 못 맞히는 쓸데없이 자세한 문제들. 사실은 모두 검색·계산으로 확인함. w: AI 안경이 보여 주는 근거 */
+  kor: [
+    { q: "세종이 직접 쓴 훈민정음 서문(한문)은 모두 몇 글자인가?", o: ["28자", "54자", "108자", "144자"], a: 1, w: "한문 서문 54자 · 언해본 서문은 108자" },
+    { q: "훈민정음 해례본은 모두 몇 장(張)짜리 책인가?", o: ["28장", "33장", "54장", "108장"], a: 1, w: "해례본은 33장 1책의 목판본" },
+    { q: "훈민정음 해례본 한 부가 경북 안동에서 발견된 해는?", o: ["1910년", "1940년", "1945년", "2008년"], a: 1, w: "1940년 안동 발견 · 2008년엔 상주에서 또 발견" },
+    { q: "한글날이 법정 공휴일에서 빠졌다가 다시 공휴일이 된 해는?", o: ["2006년", "2012년", "2013년", "2015년"], a: 2, w: "1991년 제외 → 2013년부터 다시 공휴일 (2006년엔 국경일로만 지정)" },
+    { q: "윤동주의 「서시」 끝에 적힌 날짜는?", o: ["1941년 11월 5일", "1941년 11월 20일", "1942년 6월 3일", "1945년 2월 16일"], a: 1, w: "「서시」 1941.11.20. · 11월 5일은 「별 헤는 밤」" },
+    { q: "윤동주의 「서시」는 모두 몇 연 몇 행인가?", o: ["1연 8행", "2연 9행", "2연 10행", "3연 9행"], a: 1, w: "「서시」는 2연 9행" },
+    { q: "‘짜장면’이 ‘자장면’과 함께 복수 표준어로 인정된 날은?", o: ["2009년 10월 9일", "2011년 8월 31일", "2013년 1월 1일", "2014년 12월 15일"], a: 1, w: "2011.8.31 국립국어원 발표" },
+    { q: "2011년 8월, ‘짜장면’과 함께 표준어로 인정된 항목은 모두 몇 개인가?", o: ["13개", "25개", "39개", "54개"], a: 2, w: "짜장면·먹거리·택견 등 39개 항목" }
+  ],
+  /* 사람이 못 푸는 수학 (h: 스캔이 오래 걸림) — 답은 모두 계산으로 검증함 */
+  mathA: [
+    { q: "2¹⁰⁰ 의 각 자리 숫자를 모두 더한 값은?", o: ["106", "115", "124", "100"], a: 1, h: 1, w: "2¹⁰⁰ = 1267650600228229401496703205376 → 합 115" },
+    { q: "원주율 π의 소수점 아래 1000번째 자리 숫자는?", o: ["3", "7", "9", "0"], a: 2, h: 1, w: "π 소수점 아래 1000번째 = 9 · 762번째부터는 9가 여섯 번 연속" },
+    { q: "π^(π^π) 의 정수 부분은 몇 자리 수인가?", o: ["10자리", "19자리", "36자리", "이 우주에 다 적을 수 없다"], a: 1, h: 1, w: "π^(π^π) ≈ 1,340,164,183,006,357,435.3 → 19자리" },
+    { q: "a₁ = 2, aₙ₊₁ = aₙ² − aₙ + 1 일 때, a₇ 의 각 자리 숫자의 합은?", o: ["43", "52", "61", "25"], a: 1, h: 1, w: "a₆ = 3263443, a₇ = 10650056950807 → 합 52" },
+    { q: "1부터 2027까지의 자연수 중 소수는 모두 몇 개인가?", o: ["303개", "307개", "311개", "2027개"], a: 1, h: 1, w: "2 이상 2027 이하 소수 307개 · 2027도 소수" },
+    { p: "[ 3  1  4  1 ]\n[ 5  9  2  6 ]\n[ 5  3  5  8 ]\n[ 9  7  9  3 ]", q: "위 행렬의 행렬식(det)의 값은?", o: ["−98", "0", "98", "3141"], a: 2, h: 1, w: "4×4 행렬식 전개 → det = 98" },
+    { q: "100! 의 각 자리 숫자를 모두 더한 값은?", o: ["450", "540", "648", "666"], a: 2, h: 1, w: "100! = 93326215443944…(158자리) → 합 648" },
+    { q: "2027²⁰²⁷ 은 몇 자리 수인가?", o: ["2027자리", "4054자리", "6703자리", "6704자리"], a: 2, h: 1, w: "2027 × log₁₀2027 = 6702.99… → 6703자리" },
+    { q: "1¹ + 2² + 3³ + … + 100¹⁰⁰ 의 마지막 두 자리는?", o: ["00", "20", "50", "76"], a: 1, h: 1, w: "각 항을 100으로 나눈 나머지만 더하면 → 20" },
+    { q: "e^π − π 에 가장 가까운 정수는?", o: ["19", "20", "21", "23"], a: 1, h: 1, w: "e^π − π = 19.99909997… → 20" },
+    { q: "lim(n→∞) (1 + 1/n)^(n²) · e^(−n) 의 값은?", o: ["0", "1", "1/√e", "e"], a: 2, h: 1, w: "로그를 취하면 −1/2로 수렴 → 1/√e" }
+  ],
+  mathC: [
+    { q: "1부터 2027까지의 자연수를 모두 쓸 때, 숫자 7은 모두 몇 번 쓰이는가?", o: ["503번", "583번", "603번", "703번"], a: 2, w: "자리별로 세면 → 603번" },
+    { q: "구구단(1×1부터 9×9까지) 81개의 답 중 짝수는 몇 개인가?", o: ["40개", "45개", "56개", "64개"], a: 2, w: "홀수×홀수 25개를 빼면 81 − 25 = 56개" },
+    { q: "2026년 11월 19일부터 2027년 1월 1일까지는 며칠인가?", o: ["41일", "42일", "43일", "44일"], a: 2, w: "11월 남은 11일 + 12월 31일 + 1일 = 43일" },
+    { q: "하루(24시간) 동안 시침과 분침이 정확히 겹치는 횟수는?", o: ["12번", "22번", "23번", "24번"], a: 1, w: "720/11분마다 한 번 → 하루 22번" },
+    { q: "1부터 100까지의 자연수 중 각 자리 숫자의 합이 7인 수는 몇 개인가?", o: ["6개", "7개", "8개", "9개"], a: 2, w: "7, 16, 25, 34, 43, 52, 61, 70 → 8개" },
+    { q: "2027을 2진법으로 나타냈을 때, 1은 모두 몇 개인가?", o: ["7개", "8개", "9개", "10개"], a: 2, w: "2027 = 11111101011₍₂₎ → 1이 9개" }
+  ],
+  engL: [
+    { L: ["M: My locker code is three, seven, two, nine, one.", "W: Why are you telling me that?"], q: "대화를 듣고, 남자의 사물함 비밀번호 다섯 숫자를 모두 더한 값을 고르시오.", o: ["19", "21", "22", "24"], a: 2, w: "3 + 7 + 2 + 9 + 1 = 22" },
+    { L: ["W: Today I had three coffees, two energy drinks, and one banana milk.", "M: That explains the shaking."], q: "대화를 듣고, 여자가 오늘 마신 음료는 모두 몇 개인지 고르시오.", o: ["3개", "5개", "6개", "7개"], a: 2, w: "3 + 2 + 1 = 6개" },
+    { L: ["M: Take bus number seven, zero, one, two.", "W: Seven, zero, one, two. Got it."], q: "대화를 듣고, 남자가 말한 버스 번호를 거꾸로 읽은 수를 고르시오.", o: ["2107", "2170", "7012", "1207"], a: 0, w: "7012 → 거꾸로 2107" },
+    { L: ["W: The exam ends at four thirty-seven.", "M: So that's how many minutes after four?"], q: "대화를 듣고, 시험 종료 시각이 4시 정각에서 몇 분 뒤인지 고르시오.", o: ["7분", "30분", "37분", "47분"], a: 2, w: "4:37 → 37분 뒤" }
+  ],
+  engR: [
+    { q: "미국 50개 주(州)의 이름 어디에도 쓰이지 않는 알파벳은?", o: ["J", "Q", "X", "Z"], a: 1, w: "Q만 없음 · J는 New Jersey, Z는 Arizona에만" },
+    { p: "pneumonoultramicroscopicsilicovolcanoconiosis", q: "영어에서 가장 긴 단어로 알려진 위 단어는 모두 몇 글자인가?", o: ["39글자", "42글자", "45글자", "48글자"], a: 2, w: "직접 세면 45글자" },
+    { p: "The quick brown fox jumps over the lazy dog.", q: "위 문장에서 알파벳 o는 모두 몇 번 쓰였는가?", o: ["3번", "4번", "5번", "6번"], a: 1, w: "brown, fox, over, dog → 4번" },
+    { p: "The quick brown fox jumps over the lazy dog.", q: "알파벳 26자를 모두 쓴 위 문장의 알파벳 글자 수는? (띄어쓰기·마침표 제외)", o: ["26글자", "33글자", "35글자", "43글자"], a: 2, w: "알파벳만 세면 35글자" },
+    { q: "A=1, B=2, …, Z=26일 때, ENGLISH의 각 글자 값을 모두 더하면?", o: ["68", "71", "74", "79"], a: 2, w: "5+14+7+12+9+19+8 = 74" },
+    { q: "영어 단어 ‘strengths’에 쓰인 모음 글자(a, e, i, o, u)는 몇 개인가?", o: ["0개", "1개", "2개", "3개"], a: 1, w: "s-t-r-e-n-g-t-h-s → e 하나뿐" },
+    { q: "‘Mississippi’에서 알파벳 s는 몇 번 쓰였는가?", o: ["2번", "3번", "4번", "5번"], a: 2, w: "Mi-ss-i-ss-ippi → 4번" }
+  ],
+  his: [
+    { q: "조선을 건국한 태조 이성계의 첫째 아들 이방우와 막내아들 이방석의 나이 차는?", o: ["14살", "22살", "28살", "31살"], a: 2, w: "이방우 1354년생, 이방석 1382년생 → 28살" },
+    { q: "태조 이성계의 아들은 모두 몇 명인가?", o: ["6명", "8명", "10명", "12명"], a: 1, w: "신의왕후 소생 6명 + 신덕왕후 소생 2명 = 8명" },
+    { q: "세종과 소헌왕후 사이에서 태어난 아들은 몇 명인가?", o: ["4명", "6명", "8명", "18명"], a: 2, w: "소헌왕후 소생 8남 2녀 (후궁 포함 18남 4녀)" },
+    { q: "조선에서 재위 기간이 가장 짧았던 인종은 약 몇 개월 동안 왕위에 있었는가?", o: ["약 2개월", "약 8개월", "약 14개월", "약 25개월"], a: 1, w: "약 8개월 재위 · 세자로는 25년" },
+    { q: "팔만대장경판은 모두 몇 장인가?", o: ["80,000장", "81,258장", "84,000장", "88,888장"], a: 1, w: "81,258판 · 글자 수 52,330,152자" },
+    { q: "거북선이 처음 실전에 나선 해전은?", o: ["옥포 해전", "사천 해전", "한산도 대첩", "명량 해전"], a: 1, w: "1592년 5월 29일 사천 해전에서 첫 출격" },
+    { q: "1991년, 한글날과 함께 공휴일에서 빠진 날은?", o: ["개천절", "국군의 날", "제헌절", "식목일"], a: 1, w: "1991년 국군의 날과 함께 공휴일 제외" }
+  ],
+  eth: [
+    { q: "칸트가 매일 산책을 나서 동네 사람들이 시계를 맞췄다는 그 시각은?", o: ["오전 7시", "정오 12시", "오후 3시 30분", "밤 10시"], a: 2, w: "오후 3시 30분 · 루소의 『에밀』 읽느라 거른 날도 있었다고 함" },
+    { q: "공리주의자 벤담의 유해로 만든 ‘오토 아이콘’이 전시된 곳은?", o: ["옥스퍼드 대학교", "케임브리지 대학교", "유니버시티 칼리지 런던(UCL)", "대영 박물관"], a: 2, w: "UCL 학생회관 유리 진열장 · 머리는 밀랍" },
+    { q: "사마천의 『사기』에 기록된 공자의 키는?", o: ["7척 2촌", "8척", "9척 6촌", "10척"], a: 2, w: "9척 6촌 · 사람들이 ‘키다리’라 불렀다고 함" },
+    { q: "데카르트가 스웨덴 크리스티나 여왕에게 철학을 가르친 시각은?", o: ["새벽 5시", "오전 10시", "오후 2시", "밤 11시"], a: 0, w: "새벽 5시 · 원래 정오 무렵까지 자던 사람" },
+    { q: "맹모삼천지교에서 맹자 가족이 두 번째로 살았던 곳 근처에 있던 것은?", o: ["공동묘지", "시장", "서당", "궁궐"], a: 1, w: "묘지 → 시장 → 서당(학교) 순서" },
+    { q: "맹모삼천지교의 원문대로 세면, 맹자 어머니가 실제로 이사한 횟수는?", o: ["한 번", "두 번", "세 번", "네 번"], a: 1, w: "묘지→시장, 시장→학교: 옮긴 건 두 번, 산 곳이 세 곳" }
+  ],
+  earth: [
+    { q: "현재 공식 한라산 높이에 가장 가까운 것은?", o: ["1,915m", "1,947m", "1,950m", "1,967m"], a: 1, w: "1,947.269m · 1,950m는 1901년 측정한 옛 기록" },
+    { q: "1901년 한라산 높이를 처음 1,950m로 잰 사람의 국적은?", o: ["미국", "독일", "영국", "일본"], a: 1, w: "독일 신문 특파원 지그프리트 겐테" },
+    { q: "2020년 중국과 네팔이 함께 발표한 에베레스트산의 높이는?", o: ["8,844.43m", "8,848m", "8,848.86m", "8,850m"], a: 2, w: "2020년 12월 8일 발표 · 8,848.86m" },
+    { q: "1978년 기상청 관측 이래 국내 최대인 2016년 경주 지진의 규모는?", o: ["5.1", "5.4", "5.8", "6.2"], a: 2, w: "2016.9.12 본진 5.8 (같은 날 전진 5.1)" },
+    { q: "명왕성이 행성에서 왜소행성으로 분류가 바뀐 해는?", o: ["1999년", "2003년", "2006년", "2011년"], a: 2, w: "2006년 국제천문연맹(IAU) 총회" }
+  ]
+};
+
+/* ================= 시간표 (실제 수능 시간, 게임 시간은 압축) ================= */
+const SCHED = [
+  { kind: "exam", id: "kor", period: 1, subj: "국어 영역", short: "국어", sel: "언어와 매체", from: "08:40", to: "10:00", time: 110, n: 6 },
+  { kind: "break", label: "쉬는시간", from: "10:00", to: "10:30", time: 26, peeks: 1 },
+  { kind: "exam", id: "math", period: 2, subj: "수학 영역", short: "수학", sel: "확률과 통계", from: "10:30", to: "12:10", time: 120, n: 6 },
+  { kind: "break", label: "점심시간", from: "12:10", to: "13:10", time: 44, peeks: 2, lunch: true },
+  { kind: "exam", id: "eng", period: 3, subj: "영어 영역", short: "영어", sel: "", from: "13:10", to: "14:20", time: 120, n: 6, listen: 2 },
+  { kind: "break", label: "쉬는시간", from: "14:20", to: "14:50", time: 26, peeks: 1 },
+  { kind: "exam", id: "his", period: 4, subj: "한국사 영역", short: "한국사", sel: "", from: "14:50", to: "15:20", time: 55, n: 3 },
+  { kind: "swap", label: "탐구 문제지 배부", from: "15:20", to: "15:35", time: 5, say: "한국사 답안지를 걷겠습니다. 탐구 영역 문제지를 나눠 드립니다." },
+  { kind: "exam", id: "eth", period: 4, subj: "사회탐구 영역", short: "탐구1", sel: "생활과 윤리", from: "15:35", to: "16:05", time: 62, n: 3 },
+  { kind: "swap", label: "제1선택 답안지 회수", from: "16:05", to: "16:07", time: 4, say: "제1선택 답안지를 걷겠습니다. 제2선택 문제지를 펴세요." },
+  { kind: "exam", id: "earth", period: 4, subj: "과학탐구 영역", short: "탐구2", sel: "지구과학Ⅰ", from: "16:07", to: "16:37", time: 62, n: 3 }
+];
+const toMin = (s) => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
+
+/* 난이도는 하나: 수능 */
+const D = { speed: 1.05, warn: 0.65, turn: 3.4, scan: 1.15, halluc: 0.08, mult: 1.0, cost: 13, charge: 3.2,
+            boardMin: 2.4, boardMax: 4.8, watchMin: 1.8, watchMax: 3.2 };
+const CONE = { watch: { h: 0.8, r: 12 }, patrol: { h: 0.6, r: 7.5 }, check: { h: 0.9, r: 3 }, bwatch: { h: 0.7, r: 10 }, bstroll: { h: 0.6, r: 7 }, peek: { h: 0.75, r: 11 } };
+
+/* 교실 배치 */
+const COLS_X = [-3.2, -1.6, 0, 1.6, 3.2];
+const ROWS_Z = [-3.4, -1.8, -0.2, 1.4, 3.0];
+const AISLES_X = [-2.4, -0.8, 0.8, 2.4];
+const FRONT_Z = -5.2, BACK_Z = 4.35, SIDE_X = 4.25;
+const ME_C = 2, ME_R = 3, DESK_Z = ROWS_Z[ME_R];
+const BACK_SEAT = { x: -3.8, z: 4.95 };
+const DOOR = { x: 4.5, z: -5.0 };
+const SAVE_KEY = "mollae-suneung-v1", BEST_KEY = "mollae-suneung-best";
+
+/* 상태 */
+let RUN = null, P = null, muted = false, best = null;
+try { best = JSON.parse(localStorage.getItem(BEST_KEY) || "null"); } catch (e) { best = null; }
+try { muted = localStorage.getItem("mollae-muted") === "1"; } catch (e) {}
+const S = { yaw: 0, pitch: -0.4, tYaw: 0, tPitch: -0.4 };
+
+function loadSave() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); return s && typeof s.seg === "number" && s.seg < SCHED.length ? s : null; } catch (e) { return null; } }
+function saveRun() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(RUN)); } catch (e) {} }
+function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+function segName(def) { return def.kind === "exam" ? `${def.period}교시 ${def.short}` : def.label; }
+function renderIntroState() {
+  const s = loadSave();
+  if (s) { ui.resumeBtn.hidden = false; ui.resumeBtn.textContent = `이어서 응시 · ${s.name || "수험생"} · ${segName(SCHED[s.seg])}부터`; }
+  else ui.resumeBtn.hidden = true;
+  ui.bestLine.textContent = best ? `최고 기록 · 평균 ${best.toFixed(1)}등급` : "아직 기록이 없어요";
+}
+function syncMute() { ui.mute.setAttribute("aria-pressed", String(muted)); ui.mute.textContent = muted ? "소리 OFF" : "소리 ON"; }
+ui.mute.addEventListener("click", () => { muted = !muted; syncMute(); if (muted) try { speechSynthesis.cancel(); } catch (e) {} try { localStorage.setItem("mollae-muted", muted ? "1" : "0"); } catch (e) {} });
+syncMute(); renderIntroState();
+
+const THREE = window.THREE;
+let renderer = null;
+try {
+  if (!THREE) throw new Error("no three");
+  renderer = new THREE.WebGLRenderer({ canvas: ui.gl, antialias: true, powerPreference: "high-performance" });
+} catch (e) { ui.glErr.hidden = false; ui.startBtn.disabled = true; ui.resumeBtn.disabled = true; return; }
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
+
+const EYE = new THREE.Vector3(0, 1.18, DESK_Z + 0.40);
+const PAPER_W = 0.36, PAPER_D = 0.42;
+const PAPER_POS = new THREE.Vector3(-0.02, 0.738, DESK_Z + 0.02);
+const PAPER_AIM = new THREE.Vector3(PAPER_POS.x, PAPER_POS.y, PAPER_POS.z - 0.06);
+const PAPER_YAW = Math.atan2(-(PAPER_AIM.x - EYE.x), -(PAPER_AIM.z - EYE.z));
+const PAPER_PITCH = Math.atan2(PAPER_AIM.y - EYE.y, Math.hypot(PAPER_AIM.x - EYE.x, PAPER_AIM.z - EYE.z));
+const UP_PITCH = -0.06;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xE6E0D2);
+scene.fog = new THREE.Fog(0xE6E0D2, 9, 21);
+const camera = new THREE.PerspectiveCamera(70, 1, 0.05, 40);
+camera.rotation.order = "YXZ"; camera.position.copy(EYE);
+scene.add(new THREE.HemisphereLight(0xFFF8EC, 0x8A7A62, 0.95));
+const sun = new THREE.DirectionalLight(0xFFFFFF, 0.5); sun.position.set(-6, 8, 2); scene.add(sun);
+
+const lam = (c) => new THREE.MeshLambertMaterial({ color: c });
+const basic = (o) => new THREE.MeshBasicMaterial(o);
+function plane(w, h, mat, x, y, z, ry = 0, rx = 0) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); scene.add(m); return m; }
+function box(w, h, d, mat, x, y, z, parent = scene) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); parent.add(m); return m; }
+function canvasTex(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; const t = new THREE.CanvasTexture(c); t.anisotropy = maxAniso; return { c, g: c.getContext("2d"), t }; }
+
+const F_EXAM = '"Nanum Myeongjo", "AppleMyungjo", "Batang", serif';
+const F_UI = '"IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
+const F_DISP = '"Black Han Sans", "Apple SD Gothic Neo", sans-serif';
+
+/* ================= 텍스처 ================= */
+const woodT = canvasTex(256, 256);
+(() => {
+  const g = woodT.g; g.fillStyle = "#B4895A"; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 8; i++) {
+    g.fillStyle = `rgba(${90 + Math.random() * 40},${60 + Math.random() * 20},30,${0.12 + Math.random() * 0.12})`; g.fillRect(0, i * 32, 256, 32);
+    g.fillStyle = "rgba(60,40,20,.35)"; g.fillRect(0, i * 32, 256, 2); g.fillRect((i * 97) % 256, i * 32, 2, 32);
+  }
+  woodT.t.wrapS = woodT.t.wrapT = THREE.RepeatWrapping; woodT.t.repeat.set(5, 6); woodT.t.needsUpdate = true;
+})();
+
+const boardT = canvasTex(1024, 304);
+function drawBoard() {
+  const def = P ? P.def : SCHED[RUN ? RUN.seg : 0];
+  const g = boardT.g; g.fillStyle = "#2E463B"; g.fillRect(0, 0, 1024, 304);
+  g.fillStyle = "rgba(255,255,255,.04)"; for (let i = 0; i < 40; i++) g.fillRect((i * 263) % 1024, (i * 97) % 304, 120, 6);
+  g.fillStyle = "rgba(246,244,236,.92)"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.font = `400 60px ${F_DISP}`; g.fillText("2027학년도 대학딸깍능력시험", 512, 74);
+  g.font = `600 40px ${F_UI}`;
+  let l2, l3;
+  if (def.kind === "exam") { l2 = `제${def.period}교시 ${def.subj}${def.sel && def.period === 4 ? " (" + def.sel + ")" : ""}   ${def.from} ~ ${def.to}`; l3 = "휴대폰 · 스마트 안경 제출!"; }
+  else if (def.lunch) { l2 = `점심시간   ${def.from} ~ ${def.to}`; l3 = "도시락은 자리에서. 김밥 옆구리 터짐 주의."; }
+  else if (def.kind === "break") { l2 = `쉬는시간   ${def.from} ~ ${def.to}`; l3 = "화장실은 감독관 허락 후에. 매점은 없다."; }
+  else { l2 = `${def.label}   ${def.from} ~ ${def.to}`; l3 = "문제지는 덮어 두시오."; }
+  g.fillText(l2, 512, 156);
+  g.fillStyle = "#F2E27A"; g.font = `700 36px ${F_UI}`; g.fillText(l3, 512, 236);
+  boardT.t.needsUpdate = true;
+}
+const posterT = canvasTex(384, 512);
+function drawPoster() {
+  const g = posterT.g; g.fillStyle = "#FBFAF6"; g.fillRect(0, 0, 384, 512);
+  g.fillStyle = "#D4435A"; g.fillRect(0, 0, 384, 86);
+  g.fillStyle = "#fff"; g.textAlign = "center"; g.textBaseline = "middle"; g.font = `700 34px ${F_UI}`; g.fillText("수험생 유의사항", 192, 44);
+  g.strokeStyle = "#1E1F23"; g.lineWidth = 9; g.strokeRect(70, 140, 100, 70); g.strokeRect(214, 140, 100, 70);
+  g.beginPath(); g.moveTo(170, 168); g.quadraticCurveTo(192, 150, 214, 168); g.stroke();
+  g.strokeStyle = "#D4435A"; g.lineWidth = 14; g.beginPath(); g.arc(192, 176, 110, 0, TAU); g.stroke();
+  g.beginPath(); g.moveTo(114, 98); g.lineTo(270, 254); g.stroke();
+  g.fillStyle = "#1E1F23"; g.font = `400 58px ${F_DISP}`; g.fillText("스마트 안경", 192, 346); g.fillText("반입 금지", 192, 412);
+  g.font = `600 24px ${F_UI}`; g.fillStyle = "#D4435A"; g.fillText("착용만 해도 부정행위", 192, 470);
+  posterT.t.needsUpdate = true;
+}
+const clockT = canvasTex(256, 256);
+function drawClock(mins) {
+  const g = clockT.g; g.clearRect(0, 0, 256, 256);
+  g.fillStyle = "#FBFAF6"; g.beginPath(); g.arc(128, 128, 124, 0, TAU); g.fill();
+  g.strokeStyle = "#1E1F23"; g.lineWidth = 8; g.stroke();
+  g.fillStyle = "#1E1F23"; g.textAlign = "center"; g.textBaseline = "middle"; g.font = `700 26px ${F_UI}`;
+  for (let i = 1; i <= 12; i++) { const a = i / 12 * TAU - PI / 2; g.fillText(String(i), 128 + Math.cos(a) * 96, 128 + Math.sin(a) * 96); }
+  const h = (mins / 60) % 12, m = mins % 60;
+  const hand = (ang, len, w) => { g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.moveTo(128, 128); g.lineTo(128 + Math.cos(ang) * len, 128 + Math.sin(ang) * len); g.stroke(); };
+  hand(h / 12 * TAU - PI / 2, 56, 9); hand(m / 60 * TAU - PI / 2, 84, 6);
+  g.fillStyle = "#D4435A"; g.beginPath(); g.arc(128, 128, 8, 0, TAU); g.fill();
+  clockT.t.needsUpdate = true;
+}
+
+const PW = 1024, PH = Math.round(1024 * PAPER_D / PAPER_W);
+const paperT = canvasTex(PW, PH);
+const speck = Array.from({ length: 300 }, () => [Math.random() * PW, Math.random() * PH]);
+let optRects = [];
+function wrapLines(g, text, maxW) {
+  if (text.includes("\n")) return text.split("\n").flatMap((t) => wrapLines(g, t, maxW));
+  const words = text.split(" "), lines = []; let line = "";
+  for (const w of words) {
+    const t = line ? line + " " + w : w;
+    if (g.measureText(t).width <= maxW) { line = t; continue; }
+    if (line) lines.push(line);
+    if (g.measureText(w).width <= maxW) { line = w; continue; }
+    line = "";
+    for (const ch of w) { if (g.measureText(line + ch).width > maxW) { lines.push(line); line = ch; } else line += ch; }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+function nextExamDef() {
+  if (P && P.def.kind === "exam") return P.def;
+  for (let k = RUN ? RUN.seg : 0; k < SCHED.length; k++) if (SCHED[k].kind === "exam") return SCHED[k];
+  return SCHED[0];
+}
+function drawPaper() {
+  const g = paperT.g, def = nextExamDef();
+  g.fillStyle = "#F8F6F0"; g.fillRect(0, 0, PW, PH);
+  g.fillStyle = "rgba(0,0,0,.03)"; for (const [x, y] of speck) g.fillRect(x, y, 3, 1);
+  g.textBaseline = "middle"; g.fillStyle = "#6E6C66"; g.font = `600 22px ${F_UI}`; g.textAlign = "center";
+  g.fillText("2027학년도 대학딸깍능력시험 문제지", PW / 2, 40);
+  g.fillStyle = "#1E1F23"; g.font = `700 24px ${F_UI}`; g.textAlign = "left";
+  const pl = `제 ${def.period} 교시`, pw = g.measureText(pl).width + 24;
+  g.lineWidth = 3; g.strokeStyle = "#1E1F23"; g.strokeRect(44, 74, pw, 42); g.fillText(pl, 56, 96);
+  g.textAlign = "right"; const tb = g.measureText("홀수형").width + 24; g.strokeRect(PW - 44 - tb, 74, tb, 42); g.fillText("홀수형", PW - 56, 96);
+  g.textAlign = "center"; g.font = `800 46px ${F_EXAM}`; g.fillText(def.subj, PW / 2, 96);
+  if (def.period === 4 && def.sel) { g.font = `700 26px ${F_EXAM}`; g.fillText(`( ${def.sel} )`, PW / 2, 140); }
+  if (RUN) {
+    g.font = `700 22px ${F_UI}`; g.fillStyle = "#4A4944";
+    g.textAlign = "left"; g.fillText(`성명  ${nm()}`, 46, 140);
+    g.textAlign = "right"; g.fillText(`수험 번호  ${RUN.examNo || ""}`, PW - 46, 140);
+    g.fillStyle = "#1E1F23"; g.textAlign = "center";
+  }
+  g.fillRect(44, 160, PW - 88, 6);
+
+  const live = P && P.def.kind === "exam" && !P.covered;
+  if (!live) {
+    g.font = `800 64px ${F_EXAM}`; g.fillText(P && P.def.kind === "exam" ? "문제지를 넘기시오" : "시작 종이 울리기 전에", PW / 2, PH / 2 - 60);
+    g.font = `700 40px ${F_EXAM}`; g.fillText(P && P.def.kind === "exam" ? "" : "문제지를 넘기지 마시오", PW / 2, PH / 2 + 20);
+    g.fillStyle = "#8A4B55"; g.font = `700 28px ${F_EXAM}`; g.fillText("(넘기고 싶은 마음은 정상입니다. 넘기면 부정행위입니다)", PW / 2, PH / 2 + 110);
+    optRects = []; paperT.t.needsUpdate = true; return;
+  }
+  const qs = RUN.qs[def.id], q = qs[P.qi], num = P.qi + 1, marked = RUN.ans[def.id][P.qi];
+  let y = 206;
+  g.textAlign = "left";
+  const box = q.L ? "♪ 대화를 잘 듣고 답하시오. (방송 중 · 자막을 보시오)" : q.p;
+  if (box) {
+    g.font = `700 40px ${F_EXAM}`;
+    const ls = wrapLines(g, box, PW - 88 - 52);
+    const h = ls.length * 56 + 36;
+    g.lineWidth = 2.5; g.strokeRect(44, y, PW - 88, h);
+    ls.forEach((l, i) => g.fillText(l, 70, y + 18 + 28 + i * 56));
+    y += h + 28;
+  }
+  g.font = `800 46px ${F_EXAM}`;
+  const pts = def.id === "math" ? (q.h ? " [4점]" : " [3점]") : "";
+  const ql = wrapLines(g, `${num}. ${q.q}${pts}`, PW - 96);
+  ql.forEach((l, i) => g.fillText(l, 48, y + 31 + i * 62));
+  y += ql.length * 62 + 20;
+  optRects = [];
+  g.font = `700 42px ${F_EXAM}`;
+  q.o.forEach((o, i) => {
+    const ls = wrapLines(g, `${MARK[i]} ${o}`, PW - 130);
+    const h = ls.length * 56 + 26;
+    optRects.push({ x: 40, y, w: PW - 80, h });
+    g.fillStyle = "rgba(30,31,35,.05)"; g.fillRect(40, y, PW - 80, h);
+    g.fillStyle = "#1E1F23";
+    ls.forEach((l, k) => g.fillText(l, 60, y + 13 + 28 + k * 56));
+    if (marked === i) { g.lineWidth = 6; g.beginPath(); g.ellipse(81, y + 41, 31, 31, 0, 0, TAU); g.stroke(); }
+    y += h + 10;
+  });
+  if (q.n) { g.fillStyle = "#8A4B55"; g.font = `700 32px ${F_EXAM}`; wrapLines(g, q.n, PW - 96).forEach((l, i) => g.fillText(l, 48, y + 28 + i * 44)); }
+  g.fillStyle = "#6E6C66"; g.font = `500 20px ${F_UI}`;
+  g.textAlign = "left"; g.fillText("※ 답안지의 해당란에 표기했는지 확인하시오.", 44, PH - 34);
+  g.textAlign = "right"; g.fillText(`${num} / ${qs.length}`, PW - 44, PH - 34);
+  paperT.t.needsUpdate = true;
+}
+const omrT = canvasTex(256, 512);
+function drawOMR() {
+  const g = omrT.g, def = nextExamDef();
+  g.fillStyle = "#FBEDEF"; g.fillRect(0, 0, 256, 512);
+  g.strokeStyle = "#D4435A"; g.lineWidth = 4; g.strokeRect(6, 6, 244, 500);
+  g.fillStyle = "#D4435A"; g.textAlign = "center"; g.textBaseline = "middle"; g.font = `700 20px ${F_UI}`; g.fillText(`답안지 · ${def.short}`, 128, 28);
+  g.fillStyle = "#1E1F23"; g.font = `800 22px ${F_EXAM}`; g.fillText(`성명 ${RUN ? nm() : ""}`, 128, 54);
+  g.fillStyle = "#D4435A"; g.fillRect(14, 70, 228, 3);
+  const n = def.n, ans = RUN && RUN.ans[def.id] ? RUN.ans[def.id] : [];
+  for (let i = 0; i < n; i++) {
+    const y = 102 + i * 64;
+    g.fillStyle = "#D4435A"; g.font = `700 22px ${F_UI}`; g.fillText(String(i + 1), 34, y);
+    for (let k = 0; k < 4; k++) {
+      const x = 80 + k * 44;
+      g.beginPath(); g.ellipse(x, y, 12, 17, 0, 0, TAU);
+      if (ans[i] === k) { g.fillStyle = "#1E1F23"; g.fill(); } else { g.strokeStyle = "#D4435A"; g.lineWidth = 2; g.stroke(); }
+    }
+  }
+  omrT.t.needsUpdate = true;
+}
+
+/* ================= 교실 ================= */
+plane(10, 12, new THREE.MeshLambertMaterial({ map: woodT.t }), 0, 0, -0.5, 0, -PI / 2);
+const wallMat = lam(0xECE6D8), lowMat = lam(0xC9BEA6);
+plane(10, 3.2, wallMat, 0, 1.6, -6.5); plane(10, 3.2, wallMat, 0, 1.6, 5.5, PI);
+plane(12, 3.2, wallMat, -5, 1.6, -0.5, PI / 2); plane(12, 3.2, wallMat, 5, 1.6, -0.5, -PI / 2);
+plane(10, 12, lam(0xF3F0E8), 0, 3.2, -0.5, 0, PI / 2);
+plane(10, 1, lowMat, 0, 0.5, -6.49); plane(10, 1, lowMat, 0, 0.5, 5.49, PI);
+plane(12, 1, lowMat, -4.99, 0.5, -0.5, PI / 2); plane(12, 1, lowMat, 4.99, 0.5, -0.5, -PI / 2);
+const winMat = basic({ color: 0xD5E7EF }), frameMat = lam(0x8C8F94);
+for (const z of [-3.6, -0.5, 2.6]) { plane(1.9, 1.3, winMat, -4.97, 1.85, z, PI / 2); box(0.04, 1.36, 0.05, frameMat, -4.96, 1.85, z); box(0.04, 0.05, 1.96, frameMat, -4.96, 1.85, z); }
+const lightMat = basic({ color: 0xFFFFF4 });
+for (const x of [-2.4, 0, 2.4]) for (const z of [-4, -0.6, 2.8]) box(1.2, 0.03, 0.22, lightMat, x, 3.18, z);
+box(4.6, 1.45, 0.05, lam(0x6B5A44), 0, 1.65, -6.47);
+plane(4.4, 1.3, basic({ map: boardT.t }), 0, 1.65, -6.44);
+box(4.4, 0.04, 0.09, lam(0x6B5A44), 0, 0.98, -6.42);
+const clockBack = new THREE.Mesh(new THREE.CircleGeometry(0.24, 32), lam(0x333333)); clockBack.position.set(2.9, 2.55, -6.47); scene.add(clockBack);
+const clockMesh = new THREE.Mesh(new THREE.CircleGeometry(0.22, 32), basic({ map: clockT.t, transparent: true })); clockMesh.position.set(2.9, 2.55, -6.46); scene.add(clockMesh);
+plane(0.62, 0.82, basic({ map: posterT.t }), 3.45, 1.55, -6.46);
+box(1.3, 0.78, 0.6, lam(0x8A6A48), -2.1, 0.39, -5.75);
+plane(1.0, 2.1, lam(0x8E7558), 4.98, 1.05, -5.0, -PI / 2);
+plane(3.2, 1.1, lam(0xB98F5E), 0, 1.75, 5.48, PI);
+box(6, 1.0, 0.4, lam(0x9AA3A8), 0.8, 0.5, 5.28);
+box(0.42, 0.04, 0.4, lam(0x6B5A44), BACK_SEAT.x, 0.45, BACK_SEAT.z);
+box(0.42, 0.42, 0.04, lam(0x6B5A44), BACK_SEAT.x, 0.68, BACK_SEAT.z + 0.2);
+
+const cells = [];
+ROWS_Z.forEach((z, r) => COLS_X.forEach((x, c) => cells.push({ x, z, me: r === ME_R && c === ME_C })));
+const m4 = new THREE.Matrix4();
+const deskTop = new THREE.InstancedMesh(new THREE.BoxGeometry(0.68, 0.03, 0.48), lam(0xD8B98A), cells.length);
+const deskLeg = new THREE.InstancedMesh(new THREE.BoxGeometry(0.03, 0.72, 0.03), lam(0x6C7178), cells.length * 4);
+const seat = new THREE.InstancedMesh(new THREE.BoxGeometry(0.4, 0.03, 0.38), lam(0xC9A774), cells.length);
+const seatBack = new THREE.InstancedMesh(new THREE.BoxGeometry(0.4, 0.3, 0.03), lam(0xC9A774), cells.length);
+const seatLeg = new THREE.InstancedMesh(new THREE.BoxGeometry(0.025, 0.45, 0.025), lam(0x6C7178), cells.length * 4);
+cells.forEach((c, i) => {
+  deskTop.setMatrixAt(i, m4.makeTranslation(c.x, 0.72, c.z));
+  [[-0.31, -0.21], [0.31, -0.21], [-0.31, 0.21], [0.31, 0.21]].forEach(([dx, dz], k) => deskLeg.setMatrixAt(i * 4 + k, m4.makeTranslation(c.x + dx, 0.36, c.z + dz)));
+  seat.setMatrixAt(i, m4.makeTranslation(c.x, 0.45, c.z + 0.52));
+  seatBack.setMatrixAt(i, m4.makeTranslation(c.x, 0.68, c.z + 0.72));
+  [[-0.18, -0.16], [0.18, -0.16], [-0.18, 0.16], [0.18, 0.16]].forEach(([dx, dz], k) => seatLeg.setMatrixAt(i * 4 + k, m4.makeTranslation(c.x + dx, 0.225, c.z + 0.52 + dz)));
+});
+[deskTop, deskLeg, seat, seatBack, seatLeg].forEach((m) => { m.instanceMatrix.needsUpdate = true; scene.add(m); });
+
+const others = cells.filter((c) => !c.me);
+const HOODIES = [0x2B3550, 0x5B5F66, 0x26282C, 0xB9A88A, 0x3E5C4A, 0x7A2E3A, 0x8C8F96, 0x2F4F6F, 0xD8D3C8];
+const col3 = new THREE.Color();
+const torso = new THREE.InstancedMesh(new THREE.BoxGeometry(0.38, 0.46, 0.24), lam(0xffffff), others.length);
+const sArms = new THREE.InstancedMesh(new THREE.BoxGeometry(0.09, 0.09, 0.36), lam(0xffffff), others.length * 2);
+const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.1, 14, 10), lam(0xE6C29C), others.length);
+const hair = new THREE.InstancedMesh(new THREE.SphereGeometry(0.108, 14, 10), lam(0x18181A), others.length);
+const studentPh = others.map(() => Math.random() * 6.28);
+others.forEach((c, i) => {
+  col3.setHex(pick(HOODIES));
+  torso.setMatrixAt(i, m4.makeTranslation(c.x, 0.86, c.z + 0.5)); torso.setColorAt(i, col3);
+  sArms.setMatrixAt(i * 2, m4.makeTranslation(c.x - 0.17, 0.8, c.z + 0.3)); sArms.setColorAt(i * 2, col3);
+  sArms.setMatrixAt(i * 2 + 1, m4.makeTranslation(c.x + 0.17, 0.8, c.z + 0.3)); sArms.setColorAt(i * 2 + 1, col3);
+});
+[torso, sArms].forEach((m) => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; scene.add(m); });
+scene.add(heads); scene.add(hair);
+function updateStudents(t, still) {
+  others.forEach((c, i) => {
+    const nod = still ? 0 : Math.sin(t * 1.3 + studentPh[i]) * 0.012 - (Math.sin(t * 0.3 + studentPh[i] * 2) > 0.6 ? 0.03 : 0);
+    heads.setMatrixAt(i, m4.makeTranslation(c.x, 1.13 + nod, c.z + 0.42));
+    hair.setMatrixAt(i, m4.makeTranslation(c.x, 1.16 + nod, c.z + 0.45));
+  });
+  heads.instanceMatrix.needsUpdate = true; hair.instanceMatrix.needsUpdate = true;
+}
+
+/* 내 책상 */
+const paperMesh = plane(PAPER_W, PAPER_D, basic({ map: paperT.t }), PAPER_POS.x, PAPER_POS.y, PAPER_POS.z, 0, -PI / 2);
+const omrMesh = plane(0.11, 0.22, basic({ map: omrT.t }), 0.265, 0.737, DESK_Z - 0.04, 0, -PI / 2); omrMesh.rotation.z = -0.12;
+const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.15, 8), lam(0x1E1F23)); pen.position.set(0.24, 0.745, DESK_Z + 0.14); pen.rotation.set(PI / 2, 0, 0.5); scene.add(pen);
+box(0.05, 0.02, 0.025, lam(0xF2F2F2), -0.28, 0.745, DESK_Z - 0.17);
+const lunch = new THREE.Group(); scene.add(lunch); lunch.visible = false;
+box(0.24, 0.05, 0.16, lam(0xF2EFE6), 0, 0.76, DESK_Z, lunch);
+box(0.11, 0.01, 0.14, lam(0xF4F1EA), -0.055, 0.79, DESK_Z, lunch);
+for (let i = 0; i < 6; i++) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.022, 12), lam(0x1F2A1F)); r.position.set(0.04 + (i % 3) * 0.038, 0.795, DESK_Z - 0.035 + Math.floor(i / 3) * 0.07); lunch.add(r); }
+const bank = new THREE.Group(); scene.add(bank); bank.visible = false;
+box(0.07, 0.02, 0.11, lam(0x2A2D33), 0.2, 0.747, DESK_Z + 0.16, bank);
+box(0.012, 0.006, 0.012, basic({ color: 0xF2C14E }), 0.2, 0.76, DESK_Z + 0.12, bank);
+
+/* 지우개 */
+const eraserGeo = new THREE.BoxGeometry(0.05, 0.022, 0.026), sleeveGeo = new THREE.BoxGeometry(0.03, 0.024, 0.028);
+const eraserMat = lam(0xF6F4EE), sleeveMat = lam(0x2F6DB5);
+function makeEraser() {
+  const g = new THREE.Group(); g.add(new THREE.Mesh(eraserGeo, eraserMat));
+  const s = new THREE.Mesh(sleeveGeo, sleeveMat); s.position.x = 0.01; g.add(s);
+  g.scale.setScalar(1.8); scene.add(g); return g;
+}
+const aimRing = new THREE.Mesh(new THREE.RingGeometry(0.16, 0.25, 32), basic({ color: 0xF4A7B9, transparent: true, opacity: 0.9, depthWrite: false }));
+aimRing.rotation.x = -PI / 2; aimRing.visible = false; scene.add(aimRing);
+let erasersOut = [], flying = null, aimOk = false, aimDist = 0;
+const aimPt = new THREE.Vector3();
+function clearFloorErasers() { for (const e of erasersOut) scene.remove(e.mesh); erasersOut = []; for (const p of proctors || []) p.fetch = null; }
+
+/* ================= 감독관 ================= */
+function buildPerson(suit, pants, hairC) {
+  const g = new THREE.Group(), hips = new THREE.Group(); hips.position.y = 0.9; g.add(hips);
+  const legGeo = new THREE.BoxGeometry(0.14, 0.9, 0.16); legGeo.translate(0, -0.45, 0);
+  const legL = new THREE.Mesh(legGeo, lam(pants)); legL.position.x = -0.09; hips.add(legL);
+  const legR = new THREE.Mesh(legGeo, lam(pants)); legR.position.x = 0.09; hips.add(legR);
+  const suitMat = lam(suit);
+  box(0.44, 0.62, 0.24, suitMat, 0, 0.31, 0, hips);
+  box(0.12, 0.26, 0.01, lam(0xF2F2F2), 0, 0.47, 0.125, hips);
+  box(0.1, 0.13, 0.012, lam(0x4E9A6E), 0.13, 0.38, 0.127, hips);
+  const armGeo = new THREE.BoxGeometry(0.11, 0.6, 0.13); armGeo.translate(0, -0.3, 0);
+  const aL = new THREE.Mesh(armGeo, suitMat); aL.position.set(-0.28, 0.6, 0); hips.add(aL);
+  const aR = new THREE.Mesh(armGeo, suitMat); aR.position.set(0.28, 0.6, 0); hips.add(aR);
+  const hand = new THREE.SphereGeometry(0.055, 10, 8);
+  const hl = new THREE.Mesh(hand, lam(0xE0B994)); hl.position.y = -0.62; aL.add(hl);
+  const hr = new THREE.Mesh(hand, lam(0xE0B994)); hr.position.y = -0.62; aR.add(hr);
+  const neck = new THREE.Group(); neck.position.y = 0.64; hips.add(neck);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), lam(0xE0B994)); head.position.y = 0.15; neck.add(head);
+  const h2 = new THREE.Mesh(new THREE.SphereGeometry(0.138, 16, 12), lam(hairC)); h2.position.set(0, 0.2, -0.025); h2.scale.set(1, 0.75, 1); neck.add(h2);
+  box(0.22, 0.035, 0.02, lam(0x111111), 0, 0.17, 0.125, neck);
+  box(0.03, 0.05, 0.04, lam(0xD9AE88), 0, 0.12, 0.13, neck);
+  scene.add(g);
+  const carry = new THREE.Group(); carry.add(new THREE.Mesh(eraserGeo, eraserMat));
+  const cs = new THREE.Mesh(sleeveGeo, sleeveMat); cs.position.x = 0.01; carry.add(cs);
+  carry.scale.setScalar(1.8); carry.position.set(0, -0.68, 0.05); carry.visible = false; aR.add(carry);
+  return { g, hips, legL, legR, aL, aR, neck, suitMat, carry, phase: 0 };
+}
+function makeProctor(kind) {
+  const Pm = kind === "main" ? buildPerson(0x3A3D45, 0x2A2C33, 0x1B1B1D) : buildPerson(0x9C8A6E, 0x3B3A38, 0x55534F);
+  return { kind, P: Pm, x: 0, z: FRONT_Z, ang: PI, target: PI, headYaw: 0, state: "board", t: 2, route: [], after: null, cone: null,
+           moving: false, stepT: 0, snoreT: 1, clock: 0, pose: "write", checking: false, sees: null, ec: 0 };
+}
+const main = makeProctor("main"), back = makeProctor("back");
+const proctors = [main, back];
+const SUITS = [0x3A3D45, 0x2F3B52, 0x4A3F3A, 0x3B4A3E];
+const pname = (p) => (p.kind === "back" ? "부감독" : "정감독");
+const hiddenState = (p) => p.state === "away" || p.state === "prepeek";
+function placeMain(state) { Object.assign(main, { x: 0, z: FRONT_Z, ang: PI, target: PI, headYaw: 0, route: [], after: null, cone: null, checking: false, pose: "write", ec: 0 }); toBoard(main); if (state) main.state = state; }
+function placeBack(state) { Object.assign(back, { x: BACK_SEAT.x, z: BACK_SEAT.z, ang: PI, target: PI, headYaw: 0, route: [], after: null, cone: null, checking: false, pose: "doze", ec: 0, state: state || "doze", t: rand(4, 6) }); }
+
+/* ================= 소리 ================= */
+let AC = null, noiseBuf = null;
+function audioOn() {
+  try {
+    if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); noiseBuf = AC.createBuffer(1, AC.sampleRate * 0.5, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    if (AC.state === "suspended") AC.resume().catch(() => {});
+  } catch (e) { AC = null; }
+}
+function out(pan) { if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); p.connect(AC.destination); return p; } return AC.destination; }
+function tone(f, dur, type = "sine", vol = 0.07, slide = 0, delay = 0, pan = 0) {
+  if (muted || !AC) return;
+  try { const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.linearRampToValueAtTime(Math.max(40, f + slide), t + dur); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(out(pan)); o.start(t); o.stop(t + dur + 0.03); } catch (e) {}
+}
+function noise(dur, vol, freq, type = "lowpass", pan = 0, delay = 0) {
+  if (muted || !AC || !noiseBuf) return;
+  try { const t = AC.currentTime + delay, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = noiseBuf; f.type = type; f.frequency.value = freq; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.02, dur / 3)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.connect(f); f.connect(g); g.connect(out(pan)); s.start(t); s.stop(t + dur + 0.02); } catch (e) {}
+}
+function relAngle(x, z) { return wrap(Math.atan2(x - EYE.x, z - EYE.z) - wrap(S.yaw + PI)); }
+function panOf(x, z) { return -Math.sin(relAngle(x, z)); }
+function sfx(name, p) {
+  switch (name) {
+    case "bell": tone(660, 0.35, "sine", 0.08); tone(880, 0.5, "sine", 0.08, 0, 0.3); tone(660, 0.5, "sine", 0.06, 0, 0.75); break;
+    case "end": tone(880, 0.35, "sine", 0.08); tone(660, 0.55, "sine", 0.08, 0, 0.3); break;
+    case "mark": noise(0.12, 0.08, 2600, "highpass"); noise(0.1, 0.06, 2200, "highpass", 0, 0.13); break;
+    case "scan": tone(1250, 0.07, "sine", 0.06); tone(1700, 0.1, "sine", 0.06, 0, 0.08); break;
+    case "cough": tone(170, 0.32, "triangle", 0.14, -40, 0, p ? panOf(p.x, p.z) : 0); break;
+    case "stir": noise(0.35, 0.12, 500, "lowpass", p ? panOf(p.x, p.z) : 0); break;
+    case "door": noise(0.5, 0.16, 900, "bandpass", panOf(DOOR.x, DOOR.z)); break;
+    case "plug": tone(900, 0.05, "square", 0.04); tone(1300, 0.06, "square", 0.04, 0, 0.06); break;
+    case "unplug": tone(1300, 0.05, "square", 0.04); tone(800, 0.06, "square", 0.04, 0, 0.06); break;
+    case "danger": tone(540, 0.06, "square", 0.035); break;
+    case "beat": tone(58, 0.14, "sine", 0.3); tone(52, 0.12, "sine", 0.22, 0, 0.17); break;
+    case "caught": tone(320, 0.7, "sawtooth", 0.09, -220); break;
+    case "deny": tone(220, 0.12, "square", 0.04); tone(180, 0.14, "square", 0.04, 0, 0.12); break;
+  }
+}
+function stepSound(p, d) { noise(0.08, clamp(0.9 / (d + 0.6), 0.02, 0.45) * (p.kind === "back" ? 0.6 : 1), 700, "lowpass", panOf(p.x, p.z)); }
+function snore(p, d) { noise(0.9, clamp(0.5 / (d + 0.5), 0.02, 0.2), 260, "lowpass", panOf(p.x, p.z)); }
+function tts(line) {
+  if (muted) return;
+  try {
+    const ss = window.speechSynthesis; if (!ss) return;
+    const u = new SpeechSynthesisUtterance(line.replace(/^[MW]:\s*/, ""));
+    u.lang = "en-US"; u.rate = 0.92; u.pitch = line.startsWith("W") ? 1.3 : 0.75; u.volume = 0.9;
+    ss.cancel(); ss.speak(u);
+  } catch (e) {}
+}
+function vib(pat) { try { if (navigator.vibrate) navigator.vibrate(pat); } catch (e) {} }
+
+/* ================= 자막 ================= */
+const caps = new Map();
+let capsDirty = true, capsT = 0;
+function cap(key, text, dur, cls = "") { caps.set(key, { text, t: dur, cls, born: performance.now() }); capsDirty = true; }
+function speak(p, text, dur) { cap("say-" + p.kind, `${pname(p)}: ${text}`, dur, "say"); }
+function dirWord(x, z) {
+  const rel = relAngle(x, z), a = Math.abs(rel), side = rel < 0 ? "오른쪽" : "왼쪽";
+  if (a < PI / 8) return "앞"; if (a < 3 * PI / 8) return side + " 앞"; if (a < 5 * PI / 8) return side;
+  if (a < 7 * PI / 8) return side + " 뒤"; return "뒤";
+}
+const distWord = (d) => (d < 2 ? "바로 옆" : d < 4.5 ? "가까이" : "멀리");
+function renderCaps() { const arr = [...caps.values()].sort((a, b) => a.born - b.born).slice(-4); ui.caps.innerHTML = arr.map((c) => `<div class="${c.cls}">${esc(c.text)}</div>`).join(""); capsDirty = false; }
+const EXAM_LINES = ["(사각사각)", "(에취!)", "(한숨 소리)", "(지우개 떨어지는 소리)", "(다리 떠는 소리)", "(시험지 넘기는 소리)", "(어디선가 배꼽시계가 울린다)"];
+const BREAK_LINES = ["(뒷자리에서 ‘수학 4점 그거 사람이 푸는 거 맞냐’는 소리가 들린다)", "(앞자리 학생이 초콜릿 포장을 너무 크게 깐다)", "(창밖에서 학부모님이 교문에 엿을 붙이고 있다)", "(옆 반에서 ‘야 그거 3번이야’ 하는 소리가 들린다)", "(누군가 답 맞춰 보다가 조용히 엎드린다)"];
+
+let banTimer = 0;
+function banner(html, dur) { ui.banner.innerHTML = html; ui.banner.hidden = false; clearTimeout(banTimer); banTimer = setTimeout(() => { ui.banner.hidden = true; }, dur * 1000); }
+
+/* ================= 감독관 행동 ================= */
+function toBoard(p) { p.state = "board"; p.t = rand(D.boardMin, D.boardMax); p.target = PI; p.cone = null; }
+function startPatrol(p) {
+  p.state = "patrol"; p.cone = CONE.patrol;
+  const r = [];
+  if (P && P.def.kind === "exam" && P.check && P.el >= P.checkAt) {
+    P.check = false;
+    const ax = Math.random() < 0.5 ? -0.8 : 0.8;
+    speak(p, "(이쪽을 보며 걸어온다)", 2.2);
+    r.push({ x: ax, z: FRONT_Z }, { x: ax, z: DESK_Z + 0.2 }, { wait: 2.0, look: "player", check: true, say: `${nm()} 학생, 안경 좀 볼게요` }, { x: ax, z: BACK_Z });
+    const a2 = pick(AISLES_X); r.push({ x: a2, z: BACK_Z }, { x: a2, z: FRONT_Z }, { x: 0, z: FRONT_Z });
+  } else if (Math.random() < 0.5) {
+    const a = pick(AISLES_X), zStop = pick(ROWS_Z.slice(0, 4)) + 0.8;
+    r.push({ x: a, z: FRONT_Z }, { x: a, z: zStop }, { wait: rand(1.2, 2), look: "sweep" }, { x: a, z: FRONT_Z }, { x: 0, z: FRONT_Z });
+  } else {
+    const a1 = pick(AISLES_X); r.push({ x: a1, z: FRONT_Z }, { x: a1, z: BACK_Z });
+    if (Math.random() < 0.5) r.push({ wait: rand(1.2, 2), look: PI });
+    const a2 = pick(AISLES_X.filter((x) => x !== a1)); r.push({ x: a2, z: BACK_Z }, { x: a2, z: FRONT_Z }, { x: 0, z: FRONT_Z });
+  }
+  p.route = r;
+}
+function followRoute(p, dt) {
+  const s = p.route[0]; if (!s) return;
+  if (s.wait !== undefined) {
+    if (!s.started) { s.started = true; s.t0 = s.wait; if (s.say) speak(p, s.say, s.wait + 0.3); }
+    if (s.look === "player") p.target = Math.atan2(EYE.x - p.x, EYE.z - p.z);
+    else if (typeof s.look === "number") p.target = s.look;
+    if (s.look === "sweep") p.headYaw = Math.sin((s.t0 - s.wait) * 2.2) * 0.7; else p.headYaw *= 1 - Math.min(1, dt * 5);
+    if (s.check) { p.checking = true; p.cone = CONE.check; }
+    s.wait -= dt;
+    if (s.wait <= 0) { if (s.check) { p.checking = false; p.cone = CONE.patrol; speak(p, RUN && RUN.susp < 50 ? "네, 됐어요." : "흠…", 1.6); } p.route.shift(); }
+    return;
+  }
+  const dx = s.x - p.x, dz = s.z - p.z, d = Math.hypot(dx, dz), mv = D.speed * dt;
+  p.moving = true; p.headYaw *= 1 - Math.min(1, dt * 3);
+  if (d <= mv) { p.x = s.x; p.z = s.z; p.route.shift(); } else { p.x += dx / d * mv; p.z += dz / d * mv; p.target = Math.atan2(dx, dz); }
+}
+function goRoute(p, state, route, after, cone) { p.state = state; p.route = route; p.after = after; p.cone = cone; }
+function listeningActive() {
+  if (!P || !P.def.listen || !RUN) return false;
+  const q = RUN.qs[P.def.id][P.qi];
+  return !!(q && q.L && RUN.ans[P.def.id][P.qi] === null);
+}
+function arrive(p) {
+  const a = p.after; p.after = null;
+  if (a === "away") { p.state = "away"; p.cone = null; return; }
+  if (p.kind === "main") {
+    if (a === "stand") { p.state = "stand"; p.cone = CONE.watch; }
+    else if (a === "listen" && listeningActive()) setListen(p); else toBoard(p);
+  } else { if (a === "listenB" && listeningActive()) setListen(p); else { p.state = "doze"; p.t = rand(3.5, 6); p.target = PI; p.cone = null; } }
+}
+function mainAtFront() { return Math.abs(main.z - FRONT_Z) < 0.15 && Math.abs(main.x) < 0.15; }
+function sendMainFront(after) { const r = []; if (main.z > FRONT_Z + 0.2) r.push({ x: main.x, z: FRONT_Z }); r.push({ x: 0, z: FRONT_Z }); goRoute(main, "enter", r, after, CONE.patrol); }
+function setListen(p) {
+  if (p.kind === "main") { p.state = "listen"; p.target = 0; p.cone = CONE.watch; }
+  else { p.state = "listenB"; p.target = PI; p.cone = CONE.bwatch; }
+}
+function updMain(p, dt) {
+  p.t -= dt; p.clock += dt; p.moving = false;
+  switch (p.state) {
+    case "board": p.pose = "write"; p.target = PI; p.headYaw *= 1 - Math.min(1, dt * 4);
+      if (p.t <= 0) { p.state = "warn"; p.t = D.warn; speak(p, "흠…", D.warn + 0.8); sfx("cough", p); } break;
+    case "warn": p.pose = "idle"; if (p.t <= 0) { p.state = "watch"; p.t = rand(D.watchMin, D.watchMax); p.target = 0; p.cone = CONE.watch; } break;
+    case "watch": p.pose = "idle"; p.headYaw = Math.sin(p.clock * 0.9) * 0.45;
+      if (p.t <= 0) { const want = P && P.def.kind === "exam" && P.check && P.el >= P.checkAt; if (want || Math.random() < 0.55) startPatrol(p); else toBoard(p); } break;
+    case "patrol": p.pose = "idle"; followRoute(p, dt); if (!p.route.length) toBoard(p); break;
+    case "listen": p.pose = "idle"; p.headYaw = Math.sin(p.clock * 0.6) * 0.3; break;
+    case "stand": p.pose = "idle"; p.target = 0; p.cone = CONE.watch; p.headYaw = Math.sin(p.clock * 0.7) * 0.3; break;
+    case "leave": case "enter": p.pose = "idle"; followRoute(p, dt); if (!p.route.length) arrive(p); break;
+    case "prepeek": if (p.t <= 0) { p.state = "peek"; p.t = 2.6; p.x = DOOR.x - 0.1; p.z = DOOR.z; p.target = p.ang = Math.atan2(-DOOR.x, 0.6 - DOOR.z); p.cone = CONE.peek; speak(p, "(문틈으로 교실을 둘러본다)", 2.6); } break;
+    case "peek": p.pose = "idle"; p.headYaw = Math.sin(p.clock * 1.2) * 0.35; if (p.t <= 0) { p.state = "away"; p.cone = null; sfx("door"); } break;
+    case "distract": p.pose = "idle"; p.target = Math.atan2(p.spotX - p.x, p.spotZ - p.z); p.headYaw *= 1 - Math.min(1, dt * 4);
+      if (p.t <= 0) { if (p.fetch) { resumeFetch(p); break; } const L = p.resumeListen && listeningActive(); p.resumeListen = false; if (mainAtFront()) { if (L) setListen(p); else toBoard(p); } else sendMainFront(L ? "listen" : "board"); } break;
+    case "fetchGo": case "pickup": case "fetchBring": case "handover": updFetch(p, dt); break;
+    default: break;
+  }
+}
+function updBack(p, dt) {
+  p.t -= dt; p.clock += dt; p.moving = false;
+  switch (p.state) {
+    case "doze": p.pose = "doze"; p.cone = null; p.target = PI;
+      if (p.t <= 0) { p.state = "stir"; p.t = D.warn + 0.2; speak(p, "흡!", 1.0); sfx("stir", p); } break;
+    case "stir": p.pose = "sit"; if (p.t <= 0) { p.state = "watch"; p.t = rand(1.8, 3); p.cone = CONE.bwatch; p.target = PI; cap("chair", `(의자 끄는 소리) ${dirWord(p.x, p.z)}`, 1.6, "warn"); } break;
+    case "watch": p.pose = "idle"; p.headYaw = Math.sin(p.clock * 0.8) * 0.35;
+      if (p.t <= 0) {
+        if (Math.random() < 0.5) { p.state = "stroll"; p.cone = CONE.bstroll; const x = pick(AISLES_X); p.route = [{ x: BACK_SEAT.x, z: BACK_Z }, { x, z: BACK_Z }, { wait: rand(1.2, 2), look: PI }, { x: BACK_SEAT.x, z: BACK_Z }, { x: BACK_SEAT.x, z: BACK_SEAT.z }]; }
+        else if (Math.hypot(p.x - BACK_SEAT.x, p.z - BACK_SEAT.z) < 0.5) { p.state = "doze"; p.t = rand(3.5, 6); }
+        else goRoute(p, "enter", [{ x: BACK_SEAT.x, z: BACK_Z }, { x: BACK_SEAT.x, z: BACK_SEAT.z }], "doze", CONE.bstroll);
+      } break;
+    case "distract": p.pose = "idle"; p.target = Math.atan2(p.spotX - p.x, p.spotZ - p.z); p.headYaw *= 1 - Math.min(1, dt * 4);
+      if (p.t <= 0) { if (p.fetch) { resumeFetch(p); break; } const L = p.resumeListen && listeningActive(); p.resumeListen = false; if (L) setListen(p); else { p.state = "watch"; p.t = rand(1.5, 2.5); p.target = PI; p.cone = CONE.bwatch; } } break;
+    case "fetchGo": case "pickup": case "fetchBring": case "handover": updFetch(p, dt); break;
+    case "stroll": p.pose = "idle"; followRoute(p, dt); if (!p.route.length) { p.state = "doze"; p.t = rand(3.5, 6); p.target = PI; } break;
+    case "listenB": p.pose = "idle"; p.headYaw = Math.sin(p.clock * 0.5) * 0.25; break;
+    case "leave": case "enter": p.pose = "idle"; followRoute(p, dt); if (!p.route.length) arrive(p); break;
+    default: break;
+  }
+}
+function turnP(p, dt) { const diff = wrap(p.target - p.ang), step = D.turn * dt; p.ang = wrap(p.ang + clamp(diff, -step, step)); }
+function animP(p, dt) {
+  const Pm = p.P;
+  Pm.g.visible = !hiddenState(p);
+  Pm.g.position.set(p.x, 0, p.z); Pm.g.rotation.y = p.ang;
+  Pm.phase += dt * (p.moving ? 7.5 * D.speed : 0);
+  const sw = p.moving ? Math.sin(Pm.phase) * 0.55 : 0;
+  const sitting = p.pose === "sit" || p.pose === "doze", bend = p.pose === "bend";
+  Pm.hips.position.y = sitting ? 0.47 : bend ? 0.74 : 0.9 + (p.moving ? Math.abs(Math.cos(Pm.phase)) * 0.025 : 0);
+  Pm.carry.visible = !!(p.fetch && p.fetch.er.picked);
+  Pm.legL.rotation.x = sitting ? -1.5 : sw; Pm.legR.rotation.x = sitting ? -1.5 : -sw;
+  Pm.aL.rotation.set(sitting ? -0.6 : -sw * 0.8, 0, 0.06);
+  if (p.pose === "write") Pm.aR.rotation.set(-2.25 + Math.sin(p.clock * 9) * 0.12, 0, Math.sin(p.clock * 3.5) * 0.18);
+  else if (bend) Pm.aR.rotation.set(-0.9, 0, 0);
+  else if (p.state === "handover") Pm.aR.rotation.set(-1.35, 0, 0);
+  else Pm.aR.rotation.set(sitting ? -0.6 : sw * 0.8, 0, -0.06);
+  const nod = p.pose === "doze" ? 0.55 + Math.sin(p.clock * 1.3) * 0.07 : bend ? 0.75 : 0;
+  Pm.neck.rotation.x += (nod - Pm.neck.rotation.x) * Math.min(1, dt * 5);
+  Pm.neck.rotation.y = p.headYaw;
+}
+function seenBy(p) {
+  if (hiddenState(p)) return null;
+  if (p.kind === "back" && (p.state === "doze" || p.state === "stir")) return null;
+  const dx = EYE.x - p.x, dz = EYE.z - p.z, d = Math.hypot(dx, dz);
+  if (d < 1.3) return "near";
+  if (!p.cone || d > p.cone.r) return null;
+  return Math.abs(wrap(Math.atan2(dx, dz) - (p.ang + p.headYaw))) <= p.cone.h ? "cone" : null;
+}
+
+/* ================= 진행 ================= */
+function newRun() {
+  const qs = {}, ans = {};
+  for (const def of SCHED) {
+    if (def.kind !== "exam") continue;
+    let list;
+    if (def.id === "eng") list = shuffle(BANK.engL).slice(0, def.listen).concat(shuffle(BANK.engR).slice(0, def.n - def.listen));
+    else if (def.id === "math") list = shuffle(shuffle(BANK.mathA).slice(0, 4).concat(shuffle(BANK.mathC).slice(0, def.n - 4)));
+    else list = shuffle(BANK[def.id]).slice(0, def.n);
+    qs[def.id] = list.map((q) => { const idx = shuffle([0, 1, 2, 3]); return { p: q.p, q: q.q, n: q.n, L: q.L, h: q.h || 0, w: q.w || "", o: idx.map((i) => q.o[i]), a: idx.indexOf(q.a), ai: null, conf: 0, scanned: false }; });
+    ans[def.id] = Array(def.n).fill(null);
+  }
+  return { seg: 0, qs, ans, battery: 100, susp: 0, maxSusp: 0, scans: 0, fooled: 0, charged: 0, erasers: 3, thrown: 0 };
+}
+let hintTimer = 0, firstExam = true;
+const nm = () => (RUN && RUN.name ? RUN.name : "수험생");
+const newExamNo = () => String(Math.floor(10000000 + Math.random() * 89999999));
+function beginRun(resume, name, examNo) {
+  RUN = resume ? loadSave() : null;
+  if (!RUN) { RUN = newRun(); RUN.name = name || "수험생"; RUN.examNo = examNo || newExamNo(); clearSave(); }
+  if (!RUN.name) RUN.name = "수험생";
+  if (!RUN.examNo) RUN.examNo = newExamNo();
+  ui.nameScreen.hidden = true;
+  try { document.fonts.load(`800 46px "Nanum Myeongjo"`, RUN.name).then(() => { drawPaper(); drawOMR(); }, () => {}); } catch (e) {}
+  if (RUN.erasers === undefined) RUN.erasers = 3;
+  if (RUN.thrown === undefined) RUN.thrown = 0;
+  clearFloorErasers();
+  firstExam = true;
+  caps.clear(); capsDirty = true;
+  main.P.suitMat.color.setHex(SUITS[0]);
+  ui.app.classList.remove("intro"); ui.intro.hidden = true; ui.result.hidden = true;
+  const def = SCHED[RUN.seg];
+  placeMain(); placeBack();
+  if (def.kind === "break") { main.state = "away"; back.state = "away"; }
+  enterSeg(RUN.seg, true);
+}
+function enterSeg(i, fresh) {
+  const def = SCHED[i];
+  RUN.seg = i; saveRun();
+  P = { def, t: def.time, total: def.time, el: 0, qi: 0, scanning: false, scanT: 0, hudOn: false, hudT: 0, answering: false, inView: false,
+        charging: false, locked: false, ecCool: 0, dangerT: 0, beatT: 0, studentT: rand(4, 8), covered: false, li: 0, lt: 1.2 };
+  hideAns(); scanStop(); setCharging(false); cancelAim();
+  if (RUN.erasers < 3 && i > 0) {
+    clearFloorErasers(); RUN.erasers = 3;
+    const msg = def.kind === "break" ? "(쉬는시간에 바닥의 지우개를 다 주워 왔다 · 지우개 ×3)" : "(답안지를 걷으며 감독관이 지우개를 돌려줬다 · 지우개 ×3)";
+    setTimeout(() => cap("er-back", msg, 2.6), 3600);
+  } else clearFloorErasers();
+  if (flying) { scene.remove(flying.mesh); flying = null; }
+  ui.glass.hidden = def.kind !== "exam"; ui.chargeBtn.hidden = def.kind !== "break"; ui.eraserBtn.hidden = def.kind !== "exam";
+  syncEraser();
+  paperMesh.visible = def.kind === "exam"; omrMesh.visible = def.kind === "exam";
+  lunch.visible = !!def.lunch;
+  drawBoard();
+  if (def.kind === "exam") startExam(def, fresh);
+  else if (def.kind === "break") startBreak(def, fresh);
+  else startSwap(def);
+  drawPaper(); drawOMR();
+  lastS = lastT = lastB = -1;
+}
+function startExam(def, fresh) {
+  P.qi = Math.max(0, RUN.ans[def.id].findIndex((a) => a === null));
+  RUN.susp *= 0.5;
+  P.check = def.n >= 6 || Math.random() < 0.5;
+  P.checkAt = def.time * rand(0.3, 0.65);
+  if (def.period > 1 && def.id !== "eth" && def.id !== "earth") {
+    main.P.suitMat.color.setHex(SUITS[(def.period - 1) % SUITS.length]);
+    if (!fresh) setTimeout(() => cap("twist", "(감독관이 바뀌었다. …양복 색만 바꾼 것 같다)", 3, "warn"), 2600);
+  }
+  if (hiddenState(main) || main.state === "peek") { main.state = "enter"; main.x = DOOR.x; main.z = DOOR.z; main.route = [{ x: DOOR.x - 0.4, z: FRONT_Z }, { x: 0, z: FRONT_Z }]; main.after = "board"; main.cone = CONE.patrol; }
+  else if (main.state !== "enter") { if (mainAtFront()) { main.route = []; toBoard(main); } else sendMainFront("board"); }
+  if (back.state === "listenB") { back.state = "doze"; back.t = rand(3, 5); back.cone = null; }
+  if (back.state === "away") { back.state = "enter"; back.x = DOOR.x; back.z = DOOR.z; back.route = [{ x: SIDE_X, z: DOOR.z }, { x: SIDE_X, z: BACK_Z }, { x: BACK_SEAT.x, z: BACK_Z }, { x: BACK_SEAT.x, z: BACK_SEAT.z }]; back.after = "doze"; back.cone = CONE.bstroll; }
+  if (def.listen) {
+    if (main.state === "enter") main.after = "listen"; else { main.x = 0; main.z = FRONT_Z; main.route = []; setListen(main); }
+    if (back.state === "enter") back.after = "listenB"; else { back.route = []; back.x = BACK_SEAT.x; back.z = BACK_SEAT.z - 0.35; setListen(back); }
+  }
+  const title = `${def.period}교시 ${def.subj}${def.period === 4 && def.sel ? " · " + def.sel : ""}`;
+  banner(`${title}<small>${def.from} ~ ${def.to} · ${def.n}문항${def.listen ? " · 듣기 " + def.listen + "문항 먼저" : ""}</small>`, 3.2);
+  speak(main, `지금부터 ${title} 시험을 시작합니다.`, 2.8);
+  if (def.listen) setTimeout(() => cap("ann", "(듣기 평가 중에는 감독관이 움직이지 않습니다)", 3.2, "warn"), 1500);
+  sfx("bell");
+  S.tYaw = 0; S.tPitch = UP_PITCH;
+  const p0 = P;
+  setTimeout(() => { if (P === p0 && !P.locked) { S.tYaw = PAPER_YAW; S.tPitch = PAPER_PITCH; } }, 1100);
+  if (firstExam && def.period === 1 && fresh) setTimeout(() => { if (P && P.def === def && !P.locked) speak(main, `본인 확인하겠습니다. ${nm()} 학생 맞죠? …네.`, 2.6); }, 3200);
+  if (firstExam) { firstExam = false; ui.hint.hidden = false; clearTimeout(hintTimer); hintTimer = setTimeout(() => { ui.hint.hidden = true; }, 7000); }
+}
+function startBreak(def) {
+  RUN.susp *= 0.6;
+  if (!hiddenState(main)) { const r = []; if (main.z > FRONT_Z + 0.2) r.push({ x: main.x, z: FRONT_Z }); r.push({ x: DOOR.x - 0.4, z: FRONT_Z }, { x: DOOR.x, z: DOOR.z }); goRoute(main, "leave", r, "away", CONE.patrol); }
+  if (!hiddenState(back)) goRoute(back, "leave", [{ x: back.x, z: BACK_Z }, { x: SIDE_X, z: BACK_Z }, { x: SIDE_X, z: DOOR.z }, { x: DOOR.x, z: DOOR.z }], "away", CONE.bstroll);
+  const n = def.peeks || 1;
+  P.peeks = [];
+  for (let k = 0; k < n; k++) { const span = (def.time - 14) / n; P.peeks.push(8 + span * k + rand(0, Math.max(1, span - 4))); }
+  P.preBell = false; P.entered = false;
+  banner(`${def.label}<small>${def.from} ~ ${def.to} · 안경을 충전할 수 있어요</small>`, 3.2);
+  cap("twist", "(쉬는시간. 다들 답 맞춰 보다가 표정이 어두워진다)", 3.4, "warn");
+
+  sfx("end");
+  S.tYaw = 0; S.tPitch = -0.35;
+}
+function startSwap(def) {
+  if (hiddenState(main)) { main.x = 0; main.z = FRONT_Z; main.route = []; main.state = "stand"; main.cone = CONE.watch; }
+  else if (mainAtFront()) { main.route = []; main.state = "stand"; main.cone = CONE.watch; }
+  else sendMainFront("stand");
+  speak(main, def.say, def.time + 0.5);
+  banner(`${def.label}<small>${def.from} ~ ${def.to}</small>`, 2.4);
+  sfx("end");
+  S.tYaw = 0; S.tPitch = UP_PITCH;
+}
+function nextSeg() {
+  if (!RUN) return;
+  if (RUN.seg + 1 >= SCHED.length) { finishRun(); return; }
+  enterSeg(RUN.seg + 1, false);
+}
+function endExam() {
+  if (P.locked) return;
+  P.locked = true; scanStop(); hideAns();
+  speak(main, "시험이 끝났습니다. 필기구를 내려놓으세요.", 1.8);
+  caps.delete("bc"); capsDirty = true;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  setTimeout(() => { if (P && P.locked && RUN) nextSeg(); }, 1500);
+}
+function finishRun() {
+  P.locked = true; scanStop(); hideAns(); setCharging(false);
+  speak(main, "수고하셨습니다. 오늘 시험이 모두 끝났습니다.", 2.4);
+  sfx("end"); S.tYaw = 0; S.tPitch = UP_PITCH;
+  clearSave();
+  const r = RUN;
+  setTimeout(() => showResult("done", r), 1800);
+}
+
+/* 스캔 */
+function curQ() { return P && RUN && P.def.kind === "exam" ? RUN.qs[P.def.id][P.qi] : null; }
+function scanNeed() { const q = curQ(); return D.scan * (q && q.h ? 1.7 : 1); }
+function scanStart() {
+  if (!P || P.locked || P.def.kind !== "exam" || P.answering || P.scanning) return;
+  if (RUN.battery < D.cost) { cap("bat", "AI GLASS: 배터리가 부족해요. 쉬는시간에 충전하세요.", 2, "warn"); sfx("deny"); return; }
+  if (P.hudOn) { P.hudOn = false; ui.ansCard.hidden = true; }
+  P.scanning = true; P.scanT = 0;
+  ui.glass.classList.add("on"); ui.led.classList.add("on"); ui.app.classList.add("glow"); ui.hint.hidden = true;
+}
+function scanStop() {
+  if (P) { P.scanning = false; P.scanT = 0; }
+  ui.glass.classList.remove("on"); ui.led.classList.remove("on"); ui.glass.style.setProperty("--p", 0); ui.centerMsg.hidden = true;
+  if (!P || !P.hudOn) ui.app.classList.remove("glow");
+}
+function showAns() {
+  const q = RUN.qs[P.def.id][P.qi];
+  // 스캔할 때마다 정답/오답을 새로 굴림. 오답이면 매번 다른 오답이 나올 수 있음
+  q.ai = Math.random() < D.halluc ? pick([0, 1, 2, 3].filter((i) => i !== q.a)) : q.a;
+  q.conf = Math.floor(rand(91, 100));
+  q.scanned = true; q.nScan = (q.nScan || 0) + 1;
+  RUN.scans++; RUN.battery = Math.max(0, RUN.battery - D.cost);
+  P.scanning = false; P.hudOn = true; P.hudT = 3.6;
+  ui.glass.classList.remove("on"); ui.led.classList.remove("on"); ui.glass.style.setProperty("--p", 0); ui.centerMsg.hidden = true;
+  // 정답이면 진짜 근거, 오답이면 '왠지 그럴 거 같음'
+  $("ansWork").textContent = q.ai !== q.a ? "● 근거: 왠지 그럴 거 같음" : q.w ? "● 근거: " + q.w : "● 분석 완료";
+  ui.ansText.textContent = `정답 ${MARK[q.ai]} ${q.o[q.ai]}`;
+  ui.ansConf.textContent = `확신도 ${q.conf}%` + (q.nScan > 1 ? ` · 이 문제 ${q.nScan}번째 스캔` : "");
+  ui.ansCard.hidden = false; sfx("scan");
+}
+function hideAns() { if (P) P.hudOn = false; ui.ansCard.hidden = true; if (!P || !P.scanning) ui.app.classList.remove("glow"); }
+function choose(i) {
+  if (!P || P.locked || P.def.kind !== "exam" || P.answering) return;
+  const id = P.def.id, q = RUN.qs[id][P.qi];
+  if (RUN.ans[id][P.qi] !== null) return;
+  RUN.ans[id][P.qi] = i;
+  if (q.scanned && q.ai !== q.a && i === q.ai) RUN.fooled++;
+  P.answering = true; hideAns(); scanStop(); sfx("mark"); drawPaper(); drawOMR();
+  if (q.L) { try { speechSynthesis.cancel(); } catch (e) {} caps.delete("bc"); capsDirty = true; }
+  const p0 = P;
+  setTimeout(() => {
+    if (P !== p0 || P.locked) return;
+    P.answering = false;
+    const next = RUN.ans[id].findIndex((a) => a === null);
+    if (next < 0) { cap("done", "(답안지를 엎어 두었다)", 1.4); endExam(); return; }
+    P.qi = next; P.li = 0; P.lt = 1.0;
+    if (P.def.listen && !RUN.qs[id][P.qi].L && main.state === "listen") { toBoard(main); back.state = "watch"; back.t = rand(1.5, 2.5); cap("ann", "(듣기 평가가 끝났다. 감독관이 다시 움직인다)", 2.6, "warn"); }
+    drawPaper();
+  }, 550);
+}
+function setCharging(on) {
+  if (P) P.charging = on;
+  bank.visible = !!on;
+  ui.chargeBtn.setAttribute("aria-pressed", String(!!on));
+  ui.chargeLabel.textContent = on ? "충전 중…" : "보조배터리 연결";
+  ui.chargeSub.textContent = on ? "눌러서 분리" : "눌러서 충전 시작";
+  ui.led.classList.toggle("chg", !!on);
+  ui.bat.classList.toggle("chg", !!on);
+}
+
+/* 지우개 던지기 */
+function syncEraser() {
+  const n = RUN ? RUN.erasers : 3, aiming = !!(P && P.aiming);
+  ui.eraserLabel.textContent = `지우개 ×${n}`;
+  ui.eraserSub.textContent = aiming ? "한 번 더 눌러 던지기" : n > 0 ? "눌러서 조준" : "다 썼어요";
+  ui.eraserBtn.setAttribute("aria-pressed", String(aiming));
+  ui.eraserBtn.disabled = n <= 0 && !aiming;
+}
+function cancelAim() { if (P) P.aiming = false; aimRing.visible = false; syncEraser(); }
+function computeAim() {
+  const o = camera.position; let x, z;
+  if (camF.y < -0.03) { const t = -o.y / camF.y; x = o.x + camF.x * t; z = o.z + camF.z * t; }
+  else { const h = Math.hypot(camF.x, camF.z) || 1; x = o.x + camF.x / h * 7; z = o.z + camF.z / h * 7; }
+  let dx = x - EYE.x, dz = z - EYE.z, d = Math.hypot(dx, dz);
+  if (d > 9) { x = EYE.x + dx / d * 9; z = EYE.z + dz / d * 9; }
+  x = clamp(x, -4.6, 4.6); z = clamp(z, -6.1, 5.1);
+  aimDist = Math.hypot(x - EYE.x, z - EYE.z); aimOk = aimDist >= 1.8;
+  aimPt.set(x, 0.015, z); aimRing.position.copy(aimPt);
+  aimRing.material.color.setHex(aimOk ? 0xF4A7B9 : 0x8A8A8A);
+}
+const DISTRACTABLE = new Set(["board", "warn", "watch", "patrol", "listen", "listenB", "doze", "stir", "stroll", "distract", "fetchGo", "fetchBring", "pickup"]);
+function aimVerdict() {
+  const out = [];
+  for (const p of proctors) {
+    if (hiddenState(p) || !DISTRACTABLE.has(p.state)) continue;
+    const toSpot = Math.atan2(aimPt.x - p.x, aimPt.z - p.z), toMe = Math.atan2(EYE.x - p.x, EYE.z - p.z);
+    const safe = Math.abs(wrap(toSpot - toMe)) > 0.85 && Math.hypot(EYE.x - p.x, EYE.z - p.z) >= 1.3;
+    out.push({ p, safe, wake: p.kind === "back" && (p.state === "doze" || p.state === "stir") });
+  }
+  return out;
+}
+function eraserTap() {
+  if (!P || P.locked || P.def.kind !== "exam" || flying) return;
+  if (!P.aiming) {
+    if (RUN.erasers <= 0) { cap("er", "(지우개를 다 던졌다. 이제 틀려도 못 지운다)", 1.8, "warn"); sfx("deny"); return; }
+    P.aiming = true; aimRing.visible = true; ui.hint.hidden = true;
+    if (S.tPitch < -0.45) { S.tPitch = -0.26; }
+    syncEraser(); return;
+  }
+  if (!aimOk) { cap("er", "(너무 가까워요. 더 멀리 조준하세요)", 1.4, "warn"); sfx("deny"); return; }
+  throwEraser();
+}
+function throwEraser() {
+  P.aiming = false; aimRing.visible = false;
+  RUN.erasers--; RUN.thrown++; P.throws = (P.throws || 0) + 1;
+  const spotted = proctors.find((p) => seenBy(p));
+  if (spotted) { RUN.susp += 30; cap("er-seen", `(${pname(spotted)}이 던지는 걸 봤다)`, 2, "warn"); }
+  const from = new THREE.Vector3(0.18, 0.86, EYE.z - 0.12);
+  const mesh = makeEraser(); mesh.position.copy(from);
+  const d = from.distanceTo(aimPt);
+  flying = { mesh, from, to: aimPt.clone(), t: 0, dur: 0.45 + d * 0.05, h: 0.5 + d * 0.12 };
+  noise(0.15, 0.05, 3000, "highpass");
+  syncEraser();
+}
+function landEraser(f) {
+  f.mesh.position.set(f.to.x, 0.02, f.to.z); f.mesh.rotation.set(0, Math.random() * TAU, 0);
+  const er = { mesh: f.mesh, x: f.to.x, z: f.to.z, picked: false, by: null }; erasersOut.push(er);
+  const x = f.to.x, z = f.to.z;
+  noise(0.07, 0.35, 1400, "lowpass", panOf(x, z)); noise(0.05, 0.2, 900, "lowpass", panOf(x, z), 0.09);
+  cap("eraser", `(툭… 지우개 굴러가는 소리) ${dirWord(x, z)}`, 1.8);
+  const again = P.throws >= 2;
+  if (listeningActive()) { RUN.susp += 15; cap("er-l", "(듣기 평가 중에 소리를 냈다…)", 2, "warn"); }
+  for (const p of proctors) distract(p, x, z, again ? 1.9 : 2.9);
+  assignFetch(er);
+  if (again) { RUN.susp += 10; setTimeout(() => { if (P && !P.locked) speak(main, "…또 지우개?", 1.8); }, 700); }
+}
+function distract(p, x, z, dur) {
+  if (hiddenState(p) || !DISTRACTABLE.has(p.state)) return;
+  const woke = p.kind === "back" && (p.state === "doze" || p.state === "stir");
+  if (p.state !== "distract") p.resumeListen = p.state === "listen" || p.state === "listenB";
+  p.state = "distract"; p.t = dur + (woke ? 0.4 : 0); p.route = []; p.after = null; p.checking = false; p.moving = false;
+  p.spotX = x; p.spotZ = z; p.target = Math.atan2(x - p.x, z - p.z); p.headYaw = 0; p.cone = { h: 0.7, r: 10 }; p.pose = "idle";
+  if (woke) { speak(p, "흡! (소리에 깼다)", 1.6); sfx("stir", p); }
+  else if (p.kind === "main") speak(p, "(소리 난 쪽을 본다)", 1.6);
+}
+
+/* 지우개 회수: 감독관이 주워서 갖다주면 다시 ×1 */
+const LANES = [-4.25, ...AISLES_X, SIDE_X];
+function pathTo(p, tx, tz) {
+  const lane = LANES.reduce((a, b) => (Math.abs(b - tx) < Math.abs(a - tx) ? b : a));
+  const r = [];
+  if (Math.abs(p.x - lane) > 0.06) {
+    const onCorr = Math.abs(p.z - FRONT_Z) < 0.06 || Math.abs(p.z - BACK_Z) < 0.06;
+    let cz = p.z;
+    if (!onCorr) { const cf = Math.abs(p.z - FRONT_Z) + Math.abs(FRONT_Z - tz), cb = Math.abs(p.z - BACK_Z) + Math.abs(BACK_Z - tz); cz = cf <= cb ? FRONT_Z : BACK_Z; r.push({ x: p.x, z: cz }); }
+    r.push({ x: lane, z: cz });
+  }
+  r.push({ x: lane, z: tz });
+  if (Math.abs(tx - lane) > 0.05) r.push({ x: tx, z: tz });
+  return r;
+}
+function assignFetch(er) {
+  let bestP = null, bestD = 1e9;
+  for (const p of proctors) {
+    if (hiddenState(p) || p.fetch || !(DISTRACTABLE.has(p.state) || p.state === "distract")) continue;
+    const d = Math.hypot(p.x - er.x, p.z - er.z);
+    if (d < bestD) { bestD = d; bestP = p; }
+  }
+  if (bestP) { bestP.fetch = { er }; er.by = bestP; }
+}
+function startFetchGo(p) { p.state = "fetchGo"; p.route = pathTo(p, p.fetch.er.x, p.fetch.er.z); p.cone = p.kind === "main" ? CONE.patrol : CONE.bstroll; p.pose = "idle"; p.checking = false; }
+function startFetchBring(p) { const hx = p.x <= 0 ? -0.8 : 0.8; p.state = "fetchBring"; p.route = pathTo(p, hx, DESK_Z + 0.2); p.cone = p.kind === "main" ? CONE.patrol : CONE.bstroll; p.pose = "idle"; }
+function resumeFetch(p) { p.resumeListen = false; if (p.fetch.er.picked) startFetchBring(p); else startFetchGo(p); }
+function endFetch(p) {
+  p.fetch = null; p.checking = false;
+  const L = listeningActive();
+  if (p.kind === "main") { if (mainAtFront()) { if (L) setListen(p); else toBoard(p); } else sendMainFront(L ? "listen" : "board"); }
+  else goRoute(p, "enter", [{ x: p.x, z: BACK_Z }, { x: BACK_SEAT.x, z: BACK_Z }, { x: BACK_SEAT.x, z: L ? BACK_SEAT.z - 0.35 : BACK_SEAT.z }], L ? "listenB" : "doze", CONE.bstroll);
+}
+function giveBack(er) {
+  erasersOut = erasersOut.filter((e) => e !== er); scene.remove(er.mesh);
+  RUN.erasers = Math.min(3, RUN.erasers + 1);
+  cap("give", `(지우개를 돌려받았다 · 지우개 ×${RUN.erasers})`, 2.2);
+  tone(880, 0.08, "sine", 0.05); tone(1320, 0.1, "sine", 0.05, 0, 0.09);
+  syncEraser();
+}
+function updFetch(p, dt) {
+  if (!p.fetch) { endFetch(p); return; }
+  const er = p.fetch.er;
+  if (p.state === "fetchGo") {
+    p.pose = "idle"; followRoute(p, dt);
+    if (!p.route.length) { p.state = "pickup"; p.t = 0.9; p.target = Math.atan2(er.x - p.x, er.z - p.z); p.cone = { h: 0.3, r: 3 }; }
+  } else if (p.state === "pickup") {
+    p.pose = "bend";
+    if (p.t <= 0) { er.picked = true; er.mesh.visible = false; cap("pick", `(${pname(p)}이 지우개를 주웠다) ${dirWord(p.x, p.z)}`, 1.8); startFetchBring(p); }
+  } else if (p.state === "fetchBring") {
+    p.pose = "idle"; followRoute(p, dt);
+    if (!p.route.length) { p.state = "handover"; p.t = 1.7; p.checking = true; p.cone = CONE.check; speak(p, `${nm()} 학생, 이거 떨어뜨렸죠? 조심하세요.`, 2.0); }
+  } else if (p.state === "handover") {
+    p.pose = "idle"; p.target = Math.atan2(EYE.x - p.x, EYE.z - p.z); p.headYaw *= 0.9;
+    if (p.t <= 0) {
+      p.checking = false; giveBack(er); p.fetch = null;
+      const next = erasersOut.find((e) => !e.by && !e.picked);
+      if (next) { p.fetch = { er: next }; next.by = p; startFetchGo(p); } else endFetch(p);
+    }
+  }
+}
+
+/* 적발 */
+function caught(seer) {
+  if (!P || P.locked) return;
+  P.locked = true; scanStop(); hideAns();
+  const wasCharging = P.charging; setCharging(false);
+  ui.app.classList.remove("danger"); ui.hint.hidden = true;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  P.cine = { p: seer, t: 2.3, charging: wasCharging };
+  seer.route = []; seer.state = "caught"; seer.moving = false;
+  speak(seer, wasCharging ? `${nm()} 학생, 그거 스마트 안경 충전기죠?` : `${nm()} 학생, 잠깐 그 안경 좀 벗어볼까요?`, 3);
+  sfx("caught"); vib([90, 60, 140]);
+  clearSave();
+}
+function updateCine(dt) {
+  const c = P.cine, p = c.p; c.t -= dt;
+  p.target = Math.atan2(EYE.x - p.x, EYE.z - p.z); p.headYaw *= 0.9; p.pose = "idle"; turnP(p, dt);
+  const dx = p.x - EYE.x, dz = p.z - EYE.z;
+  S.tYaw = S.yaw + wrap(Math.atan2(-dx, -dz) - S.yaw); S.tPitch = Math.atan2(1.62 - EYE.y, Math.hypot(dx, dz));
+  if (c.t <= 0) { const cc = P.cine; P.cine = null; showResult("caught", RUN, cc); }
+}
+
+/* ================= 결과 ================= */
+const gradeOf = (c, n) => { const r = c / n; return r >= 1 ? 1 : r >= 0.8 ? 2 : r >= 0.66 ? 3 : r >= 0.5 ? 4 : r >= 0.33 ? 6 : r > 0 ? 8 : 9; };
+function showResult(kind, r, cc) {
+  const again = `<div class="btns"><button class="primary" type="button" id="againBtn">다시 응시하기</button><button class="secondary" type="button" id="homeBtn">처음 화면으로</button></div>`;
+  if (kind === "caught") {
+    const def = SCHED[r.seg], who = cc && cc.p ? pname(cc.p) : "감독관";
+    const when = def.kind === "exam" ? `${def.period}교시 ${def.short} ${P.qi + 1}번 문제를 풀다가` : `${def.label}에 안경을 충전하다가`;
+    ui.result.innerHTML = `
+      <div class="stamp">적발</div>
+      <p class="caught-line">“${esc(r.name || "수험생")} 학생, ${cc && cc.charging ? "그거 스마트 안경 충전기죠?" : "잠깐 그 안경 좀 벗어볼까요?"}”</p>
+      <p class="caught-sub">${when} ${who}에게 들켰어요. 오늘 본 시험은 전부 무효예요.</p>
+      <div class="report">
+        <div class="rep-head"><span>부정행위 처리 결과</span><span>2027학년도</span></div>
+        <div class="rep-id"><span>성명 <b>${esc(r.name || "수험생")}</b></span><span>수험 번호 ${esc(r.examNo || "")}</span></div>
+        <dl class="stats">
+          <div><dt>적발 시점</dt><dd>${esc(segName(def))}</dd></div>
+          <div><dt>처분</dt><dd>당해 시험 무효</dd></div>
+          <div><dt>안경 스캔</dt><dd>${r.scans}번</dd></div>
+          <div><dt>남은 배터리</dt><dd>${Math.round(r.battery)}%</dd></div>
+        </dl>
+      </div>
+      <p class="note">팁: “흠…”, “흡!”, 문 손잡이 소리 자막이 뜨면 바로 손을 떼거나 충전기를 뽑으세요.</p>
+      <p class="eerie">다음 해 응시 자격도 박탈됐어요. 엄마한테는 뭐라고 하죠?</p>
+      ${again}`;
+  } else {
+    const rows = [["his", "한국사", ""], ["kor", "국어", "언어와 매체"], ["math", "수학", "확률과 통계"], ["eng", "영어", ""], ["eth", "탐구", "생활과 윤리"], ["earth", "탐구", "지구과학Ⅰ"]];
+    let sum = 0, used = 0, total = 0;
+    const tr = rows.map(([id, name, sel]) => {
+      const qs = r.qs[id], ans = r.ans[id];
+      const c = qs.reduce((s, q, i) => s + (ans[i] === q.a ? 1 : 0), 0);
+      const g = gradeOf(c, qs.length); sum += g; total++;
+      used += qs.filter((q) => q.scanned).length;
+      return `<tr><td>${name}</td><td class="sel">${sel || "—"}</td><td>${c} / ${qs.length}</td><td class="grade">${g}</td></tr>`;
+    }).join("");
+    const avg = sum / total, maxS = Math.round(r.maxSusp);
+    const isBest = best === null || avg < best;
+    if (isBest) { best = avg; try { localStorage.setItem(BEST_KEY, JSON.stringify(best)); } catch (e) {} }
+    let title;
+    if (used === 0 && avg <= 2) title = ["진짜 실력자", "안경은 그냥 안경이었어요. 감독관도 할 말이 없어요."];
+    else if (r.fooled >= 3) title = ["AI 맹신러", `AI가 자신 있게 틀린 답을 ${r.fooled}번이나 그대로 옮겨 적었어요.`];
+    else if ((r.thrown || 0) >= 3 && maxS < 70) title = ["지우개 투수", "지우개 세 개로 감독관 시선을 전부 돌렸어요. 마킹 수정은 포기했어요."];
+    else if (maxS >= 85) title = ["강심장", `의심도 ${maxS}%까지 갔다가 살아남았어요.`];
+    else if (used >= 20) title = ["안경 없인 못 살아", `27문항 중 ${used}문항을 안경으로 풀었어요.`];
+    else if (r.charged >= 120) title = ["충전의 달인", `쉬는시간마다 들키지 않고 ${Math.round(r.charged)}%를 채웠어요.`];
+    else if (avg >= 7) title = ["찍기의 달인", "운에 모든 걸 맡겼어요."];
+    else title = ["무난한 수험생", "감독관은 아무것도 눈치채지 못했어요. 아마도."];
+    ui.result.innerHTML = `
+      <div class="report">
+        <div class="rep-head"><span>2027학년도 대학딸깍능력시험 성적통지표</span><span>평균 ${avg.toFixed(1)}등급</span></div>
+        <div class="rep-id"><span>성명 <b>${esc(r.name || "수험생")}</b></span><span>수험 번호 ${esc(r.examNo || "")}</span></div>
+        <table>
+          <thead><tr><th>영역</th><th>선택과목</th><th>맞힌 문항</th><th>등급</th></tr></thead>
+          <tbody>${tr}</tbody>
+        </table>
+        <dl class="stats">
+          <div><dt>안경 사용</dt><dd>${used}문항</dd></div>
+          <div><dt>AI 오답에 속음</dt><dd>${r.fooled}번</dd></div>
+          <div><dt>최고 의심도</dt><dd>${maxS}%</dd></div>
+          <div><dt>몰래 충전</dt><dd>${Math.round(r.charged)}%</dd></div>
+          <div><dt>지우개 투척</dt><dd>${r.thrown || 0}개</dd></div>
+          <div><dt>남은 배터리</dt><dd>${Math.round(r.battery)}%</dd></div>
+        </dl>
+      </div>
+      <div class="title-card"><span class="k">칭호</span><strong>${title[0]}</strong><p>${title[1]}</p></div>
+      <p class="note">${isBest ? "최고 기록이에요." : `최고 기록은 평균 ${best.toFixed(1)}등급이에요.`} 영역마다 문항 수는 실제 수능보다 적어요.</p>
+      <p class="eerie">성적표를 받았다. 일단 치킨부터 시키자.</p>
+      ${again}`;
+  }
+  ui.result.hidden = false; ui.result.scrollTop = 0;
+  $("againBtn").addEventListener("click", () => { audioOn(); beginRun(false); });
+  $("homeBtn").addEventListener("click", showIntro);
+  $("againBtn").focus({ preventScroll: true });
+}
+function showIntro() {
+  P = null; RUN = null; ui.result.hidden = true; ui.nameScreen.hidden = true; ui.intro.hidden = false; ui.app.classList.add("intro");
+  caps.clear(); capsDirty = true; placeMain(); placeBack(); clearFloorErasers(); aimRing.visible = false;
+  paperMesh.visible = true; omrMesh.visible = true; lunch.visible = false; setCharging(false);
+  drawBoard(); drawPaper(); drawOMR(); renderIntroState();
+}
+
+/* ================= 매 프레임 ================= */
+let lastS = -1, lastT = -1, lastB = -1;
+const fmt = (t) => String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0");
+const camF = new THREE.Vector3(), tmpV = new THREE.Vector3();
+function tellNow() { if (!P || P.locked) return 0; if (P.def.kind === "exam") return P.scanning ? 1 : P.hudOn ? 0.4 : 0; if (P.def.kind === "break") return P.charging ? 1 : 0; return 0; }
+
+function update(dt) {
+  const def = P.def;
+  P.t -= dt; P.el += dt; P.ecCool -= dt;
+  for (const p of proctors) {
+    if (p.kind === "main") updMain(p, dt); else updBack(p, dt);
+    turnP(p, dt);
+    if (hiddenState(p)) continue;
+    const d = Math.hypot(p.x - EYE.x, p.z - EYE.z);
+    if (p.moving) {
+      p.stepT -= dt;
+      if (p.stepT <= 0) {
+        p.stepT = 0.5 / D.speed; stepSound(p, d);
+        const quiet = p.kind === "back";
+        if (!quiet || d < 4) cap("steps-" + p.kind, `(${quiet ? "사뿐사뿐" : "뚜벅뚜벅"}) ${dirWord(p.x, p.z)} · ${distWord(d)}`, 1.1, d < 2.5 ? "warn" : "");
+      }
+    }
+    if (p.kind === "back" && p.state === "doze") { p.snoreT -= dt; if (p.snoreT <= 0) { p.snoreT = 2.6; snore(p, d); cap("snore", `(드르렁…) ${dirWord(p.x, p.z)}`, 1.8); } }
+  }
+  P.studentT -= dt;
+  if (P.studentT <= 0) {
+    const listening = def.listen && main.state === "listen";
+    P.studentT = rand(6, 11);
+    if (!listening) { const c = pick(others); cap("stu", def.kind === "break" ? pick(BREAK_LINES) : `${pick(EXAM_LINES)} ${dirWord(c.x, c.z + 0.4)}`, 2.2); }
+  }
+
+  if (flying) {
+    const f = flying; f.t += dt; const k = Math.min(1, f.t / f.dur);
+    f.mesh.position.lerpVectors(f.from, f.to, k); f.mesh.position.y += Math.sin(PI * k) * f.h;
+    f.mesh.rotation.x += dt * 14; f.mesh.rotation.z += dt * 9;
+    if (k >= 1) { flying = null; landEraser(f); }
+  }
+  if (def.kind === "exam" && !P.locked) {
+    tmpV.copy(PAPER_POS).project(camera);
+    P.inView = tmpV.z < 1 && Math.abs(tmpV.x) < 0.75 && tmpV.y > -0.9 && tmpV.y < 0.75 && S.pitch < -0.3;
+    if (P.scanning) {
+      if (P.inView) {
+        P.scanT += dt; ui.centerMsg.hidden = true;
+        const pr = clamp(P.scanT / scanNeed(), 0, 1); ui.glass.style.setProperty("--p", pr);
+        if (pr >= 1) showAns();
+      } else { setText(ui.centerMsg, "시험지를 바라보세요"); ui.centerMsg.hidden = false; }
+    }
+    if (P.hudOn) { P.hudT -= dt; if (P.hudT <= 0) hideAns(); }
+    const q = RUN.qs[def.id][P.qi];
+    if (q && q.L && RUN.ans[def.id][P.qi] === null && !P.answering) {
+      P.lt -= dt;
+      if (P.lt <= 0) {
+        if (P.li < q.L.length) { cap("bc", `방송 ▶ ${q.L[P.li]}`, 3.4, "bc"); tts(q.L[P.li]); P.li++; P.lt = 3.0; }
+        else { P.li = 0; P.lt = 2.4; cap("bc", "방송 ▶ (같은 대화가 다시 나온다…)", 2.2, "bc"); }
+      }
+    }
+    if (P.t <= 0) endExam();
+  } else if (def.kind === "break" && !P.locked) {
+    if (P.charging) { const before = RUN.battery; RUN.battery = Math.min(100, RUN.battery + D.charge * dt); RUN.charged += RUN.battery - before; }
+    if (P.peeks.length && P.el >= P.peeks[0]) {
+      if (main.state === "away") { P.peeks.shift(); main.state = "prepeek"; main.t = 1.3; sfx("door"); cap("door", `(문 손잡이 돌아가는 소리) ${dirWord(DOOR.x, DOOR.z)}`, 1.6, "warn"); }
+    }
+    if (!P.preBell && P.t <= 6) { P.preBell = true; cap("bell", "(예비령이 울린다) 곧 감독관이 들어와요", 2.6, "warn"); tone(740, 0.5, "sine", 0.06); }
+    if (!P.entered && P.t <= 4.2 && main.state === "away") {
+      P.entered = true; sfx("door");
+      main.x = DOOR.x; main.z = DOOR.z; goRoute(main, "enter", [{ x: DOOR.x - 0.4, z: FRONT_Z }, { x: 0, z: FRONT_Z }], "board", CONE.patrol);
+      back.x = DOOR.x; back.z = DOOR.z; goRoute(back, "enter", [{ x: SIDE_X, z: DOOR.z }, { x: SIDE_X, z: BACK_Z }, { x: BACK_SEAT.x, z: BACK_Z }, { x: BACK_SEAT.x, z: BACK_SEAT.z }], "doze", CONE.bstroll);
+    }
+    if (P.t <= 0) { if (P.charging) { setCharging(false); cap("plug", "(충전기를 급히 뽑았다)", 1.6); } P.locked = true; nextSeg(); return; }
+  } else if (def.kind === "swap" && !P.locked) {
+    if (P.t <= 0) { P.locked = true; nextSeg(); return; }
+  }
+
+  // 감지
+  camera.getWorldDirection(camF);
+  const tell = tellNow();
+  let rate = 0, seer = null;
+  for (const p of proctors) {
+    p.sees = seenBy(p);
+    if (p.sees && tell > 0) {
+      let r = p.sees === "cone" ? 75 : 55;
+      if (p.checking) r = 170;
+      if (p.state === "peek") r = 55;
+      r *= tell * D.mult;
+      if (r > rate) { rate = r; seer = p; }
+    }
+    if (p.sees === "cone" && p.kind === "main" && def.kind === "exam") {
+      tmpV.set(p.x, 1.62, p.z).sub(EYE).normalize();
+      if (camF.angleTo(tmpV) < 0.18 && Math.hypot(p.x - EYE.x, p.z - EYE.z) < 8) {
+        p.ec += dt;
+        if (p.ec > 0.5 && P.ecCool <= 0) { RUN.susp += 5; P.ecCool = 6; cap("ec", "(감독관과 눈이 마주쳤다…)", 1.8, "warn"); }
+      } else p.ec = 0;
+    } else p.ec = 0;
+  }
+  const seen = rate > 0 && !P.locked;
+  if (seen) { RUN.susp += rate * dt; P.dangerT -= dt; if (P.dangerT <= 0) { sfx("danger"); vib(25); P.dangerT = 0.35; } }
+  else { RUN.susp -= (def.kind === "break" ? 6 : 9) * dt; P.dangerT = 0; }
+  RUN.susp = clamp(RUN.susp, 0, 100); RUN.maxSusp = Math.max(RUN.maxSusp, RUN.susp);
+  ui.app.classList.toggle("danger", seen);
+  if (RUN.susp > 55) { P.beatT -= dt; if (P.beatT <= 0) { sfx("beat"); P.beatT = 0.85 - (RUN.susp - 55) / 100; } }
+  if (RUN.susp >= 100 && !P.locked) { caught(seer || main); return; }
+
+  // HUD
+  const s = Math.round(RUN.susp);
+  if (s !== lastS) { ui.suspFill.style.width = s + "%"; ui.suspFill.style.backgroundColor = s >= 70 ? "var(--alert)" : s >= 40 ? "var(--amber)" : "var(--hud)"; ui.suspNum.textContent = s + "%"; lastS = s; }
+  const t = Math.max(0, Math.ceil(P.t));
+  if (t !== lastT) {
+    ui.timer.textContent = fmt(t); ui.timer.classList.toggle("low", t <= 10 && def.kind === "exam"); lastT = t;
+    const a = toMin(def.from), b = toMin(def.to); drawClock(a + (b - a) * clamp(P.el / P.total, 0, 1));
+    if (def.kind === "exam" && t === 10) cap("ten", "정감독: 시험 종료 10분 전입니다.", 2.2, "say");
+  }
+  const bat = Math.floor(RUN.battery);
+  if (bat !== lastB) { ui.bat.textContent = `BAT ${bat}%`; ui.bat.classList.toggle("low", bat < D.cost * 2 && !P.charging); lastB = bat; }
+  setText(ui.segChip, def.kind === "exam" ? `${def.period}교시 ${def.short} · ${Math.min(P.qi + 1, def.n)}/${def.n}` : `${def.label} ${def.from}~${def.to}`);
+}
+
+/* ================= HUD 캔버스 ================= */
+const hctx = ui.hud.getContext("2d");
+let vw = 1, vh = 1, hdpr = 1, baseFov = 70;
+function toScreen(x, y, z) { tmpV.set(x, y, z); const ok = tmpV.clone().sub(camera.position).dot(camF) > 0.05; tmpV.project(camera); return { x: (tmpV.x + 1) / 2 * vw, y: (1 - tmpV.y) / 2 * vh, ok }; }
+function brackets(g, x, y, w, h, col, len) {
+  const L = Math.min(len, w / 3, h / 3);
+  g.strokeStyle = col; g.lineWidth = 2; g.shadowColor = col; g.shadowBlur = 8; g.beginPath();
+  g.moveTo(x, y + L); g.lineTo(x, y); g.lineTo(x + L, y);
+  g.moveTo(x + w - L, y); g.lineTo(x + w, y); g.lineTo(x + w, y + L);
+  g.moveTo(x + w, y + h - L); g.lineTo(x + w, y + h); g.lineTo(x + w - L, y + h);
+  g.moveTo(x + L, y + h); g.lineTo(x, y + h); g.lineTo(x, y + h - L);
+  g.stroke(); g.shadowBlur = 0;
+}
+function label(g, text, x, y, col, bg = "rgba(8,16,12,.78)") {
+  g.font = '700 11px "Nanum Gothic Coding", ui-monospace, monospace';
+  const w = g.measureText(text).width + 10, lx = clamp(x, 6, vw - w - 6);
+  g.fillStyle = bg; g.fillRect(lx, y - 9, w, 17); g.fillStyle = col; g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(text, lx + 5, y);
+}
+function drawHUD(now) {
+  const g = hctx; g.setTransform(hdpr, 0, 0, hdpr, 0, 0); g.clearRect(0, 0, vw, vh);
+  if (!P) return;
+  const tm = now / 1000;
+  if (P.def.kind === "exam" && !P.locked && (P.scanning || P.hudOn)) {
+    const cs = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sz]) => toScreen(PAPER_POS.x + sx * PAPER_W / 2, PAPER_POS.y, PAPER_POS.z + sz * PAPER_D / 2));
+    if (cs.every((c) => c.ok)) {
+      const xs = cs.map((c) => c.x), ys = cs.map((c) => c.y);
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+      const pad = P.scanning ? 6 + Math.sin(tm * 10) * 3 : 4;
+      brackets(g, x0 - pad, y0 - pad, x1 - x0 + pad * 2, y1 - y0 + pad * 2, "#46E08A", 26);
+      if (P.scanning && P.inView) {
+        const hard = curQ() && curQ().h;
+        const pr = clamp(P.scanT / scanNeed(), 0, 1), sy = y0 + (y1 - y0) * ((tm * (hard ? 2.6 : 1.4)) % 1);
+        g.fillStyle = hard ? "rgba(242,193,78,.4)" : "rgba(70,224,138,.35)"; g.fillRect(x0, sy - 2, x1 - x0, 4);
+        label(g, hard ? `고난도 연산 중 ${Math.round(pr * 100)}% · 인간에겐 무리` : `문제 인식 중 ${Math.round(pr * 100)}%`, x0, Math.max(y0 - pad - 14, 120), hard ? "#F2C14E" : "#46E08A");
+      }
+    }
+  }
+  if (P.aiming && !P.locked) {
+    g.strokeStyle = "rgba(244,167,185,.95)"; g.lineWidth = 1.5; g.beginPath();
+    g.moveTo(vw / 2 - 11, vh / 2); g.lineTo(vw / 2 + 11, vh / 2); g.moveTo(vw / 2, vh / 2 - 11); g.lineTo(vw / 2, vh / 2 + 11); g.stroke();
+    const s = toScreen(aimPt.x, 0.02, aimPt.z);
+    if (s.ok) {
+      label(g, aimOk ? `착지 지점 · ${aimDist.toFixed(1)}m` : "너무 가까워요", s.x + 14, s.y - 12, "#F9C9D4");
+      let yy = s.y + 8;
+      for (const v of aimVerdict()) {
+        label(g, `${pname(v.p)} 시선 ${v.safe ? "✓ 나를 벗어남" : "⚠ 나를 지나감"}${v.wake ? " · 깨움" : ""}`, s.x + 14, yy, v.safe && !v.wake ? "#46E08A" : v.safe ? "#F2C14E" : "#FF5B6E");
+        yy += 19;
+      }
+    }
+  }
+  for (const p of proctors) {
+    if (!p.P.g.visible) continue;
+    const sitting = p.pose === "sit" || p.pose === "doze";
+    const a = toScreen(p.x, sitting ? 1.35 : 1.85, p.z), b = toScreen(p.x, 0.02, p.z);
+    if (!a.ok || !b.ok) continue;
+    const h = b.y - a.y, w = h * 0.5;
+    if (h < 12 || a.x < -w || a.x > vw + w || b.y < 0 || a.y > vh) continue;
+    const seeing = !P.locked && p.sees, col = seeing ? "#FF5B6E" : "#46E08A";
+    brackets(g, a.x - w / 2, a.y, w, h, col, 14);
+    label(g, `${pname(p)} ${p.kind === "back" ? 98 : 97}% · ${Math.hypot(p.x - EYE.x, p.z - EYE.z).toFixed(1)}m`, a.x - w / 2, a.y - 12, col);
+    if (p.state === "doze") label(g, "졸고 있음 zzz", a.x - w / 2, a.y - 31, "#46E08A");
+    else if (seeing) label(g, "⚠ 나를 보는 중", a.x - w / 2, a.y - 31, "#FFFFFF", "rgba(212,67,90,.9)");
+  }
+}
+
+/* ================= 렌더 루프 ================= */
+function resize() {
+  const w = ui.app.clientWidth, h = ui.app.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  baseFov = clamp(2 * Math.atan(Math.tan(30 * PI / 180) / camera.aspect) * 180 / PI, 58, 92);
+  camera.fov = baseFov; camera.updateProjectionMatrix();
+  hdpr = Math.min(window.devicePixelRatio || 1, 2); vw = w; vh = h;
+  ui.hud.width = Math.round(w * hdpr); ui.hud.height = Math.round(h * hdpr);
+}
+let last = performance.now(), drag = null;
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; const t = now / 1000;
+  if (!document.hidden) {
+    if (P && P.cine) updateCine(dt);
+    else if (P && !P.locked) update(dt);
+    else if (!P) { updMain(main, dt); turnP(main, dt); updBack(back, dt); turnP(back, dt); S.tYaw = Math.sin(t * 0.13) * 0.35; S.tPitch = -0.4 + Math.sin(t * 0.21) * 0.04; }
+    for (const p of proctors) animP(p, dt);
+    updateStudents(t, !!(P && P.def.listen && main.state === "listen"));
+    const k = Math.min(1, dt * (drag && drag.moved ? 18 : 6));
+    S.yaw += (S.tYaw - S.yaw) * k; S.pitch += (S.tPitch - S.pitch) * k;
+    camera.rotation.y = S.yaw; camera.rotation.x = S.pitch;
+    const lean = clamp((S.pitch - PAPER_PITCH) / (UP_PITCH - PAPER_PITCH), 0, 1);
+    const fov = baseFov * (0.74 + 0.26 * lean);
+    if (Math.abs(camera.fov - fov) > 0.05) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    camera.updateMatrixWorld(); camera.getWorldDirection(camF);
+    if (P && P.aiming) computeAim();
+    renderer.render(scene, camera);
+    drawHUD(now);
+    if (P && !P.locked) setText(ui.lookBtn, P.aiming ? "조준 취소" : S.tPitch > -0.45 ? "시험지 보기" : "고개 들기");
+    let changed = false;
+    for (const [k2, c] of caps) { c.t -= dt; if (c.t <= 0) { caps.delete(k2); changed = true; } }
+    capsT -= dt; if ((capsDirty || changed) && capsT <= 0) { renderCaps(); capsT = 0.12; }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ================= 입력 ================= */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function tapAt(cx, cy) {
+  if (!P || P.locked || P.def.kind !== "exam") return;
+  const r = ui.gl.getBoundingClientRect();
+  ndc.set((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObject(paperMesh)[0]; if (!hit || !hit.uv) return;
+  const px = hit.uv.x * PW, py = (1 - hit.uv.y) * PH;
+  const i = optRects.findIndex((o) => px >= o.x && px <= o.x + o.w && py >= o.y && py <= o.y + o.h);
+  if (i >= 0) choose(i);
+}
+ui.gl.addEventListener("pointerdown", (e) => { audioOn(); drag = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, moved: false }; try { ui.gl.setPointerCapture(e.pointerId); } catch (err) {} });
+ui.gl.addEventListener("pointermove", (e) => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly; drag.lx = e.clientX; drag.ly = e.clientY;
+  if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 9) drag.moved = true;
+  if (drag.moved && P && !P.locked) { S.tYaw = clamp(S.tYaw + dx * 0.0055, -2.3, 2.3); S.tPitch = clamp(S.tPitch + dy * 0.0055, -1.3, 0.5); }
+});
+const endDrag = (e) => { if (!drag || e.pointerId !== drag.id) return; if (!drag.moved && e.type === "pointerup") tapAt(e.clientX, e.clientY); drag = null; };
+ui.gl.addEventListener("pointerup", endDrag); ui.gl.addEventListener("pointercancel", endDrag);
+ui.glass.addEventListener("pointerdown", (e) => { e.preventDefault(); try { ui.glass.setPointerCapture(e.pointerId); } catch (err) {} audioOn(); scanStart(); });
+["pointerup", "pointercancel", "lostpointercapture"].forEach((ev) => ui.glass.addEventListener(ev, () => { if (P && P.scanning) scanStop(); }));
+ui.glass.addEventListener("contextmenu", (e) => e.preventDefault());
+ui.chargeBtn.addEventListener("click", () => {
+  if (!P || P.locked || P.def.kind !== "break") return;
+  audioOn(); const on = !P.charging; setCharging(on); sfx(on ? "plug" : "unplug");
+  if (on) cap("plug", "(책상 밑에서 보조배터리를 연결했다)", 1.6);
+});
+ui.eraserBtn.addEventListener("click", () => { audioOn(); eraserTap(); });
+ui.lookBtn.addEventListener("click", () => { if (!P || P.locked) return; if (P.aiming) { cancelAim(); return; } if (S.tPitch > -0.45) { S.tYaw = PAPER_YAW; S.tPitch = PAPER_PITCH; } else { S.tYaw = 0; S.tPitch = UP_PITCH; } });
+let spaceDown = false;
+window.addEventListener("keydown", (e) => {
+  if (e.code === "Space") { if (P) e.preventDefault(); if (!spaceDown) { spaceDown = true; audioOn(); scanStart(); } }
+  else if (/^Digit[1-4]$/.test(e.code)) choose(Number(e.code.slice(5)) - 1);
+  else if (e.code === "KeyC") ui.chargeBtn.click();
+  else if (e.code === "KeyE") { audioOn(); eraserTap(); }
+  else if (e.code === "Escape") cancelAim();
+  else if (P && !P.locked) {
+    if (e.code === "ArrowUp" || e.code === "KeyW") { S.tYaw = 0; S.tPitch = UP_PITCH; }
+    else if (e.code === "ArrowDown" || e.code === "KeyS") { S.tYaw = PAPER_YAW; S.tPitch = PAPER_PITCH; }
+    else if (e.code === "ArrowLeft" || e.code === "KeyA") S.tYaw = clamp(S.tYaw + 0.5, -2.3, 2.3);
+    else if (e.code === "ArrowRight" || e.code === "KeyD") S.tYaw = clamp(S.tYaw - 0.5, -2.3, 2.3);
+  }
+});
+window.addEventListener("keyup", (e) => { if (e.code === "Space") { spaceDown = false; if (P && P.scanning) scanStop(); } });
+document.addEventListener("visibilitychange", () => { if (document.hidden && P && P.scanning) scanStop(); });
+/* 성명 쓰기 (최대 4자) */
+let nameComposing = false;
+const MAX_NAME = 4;
+function cleanName(v) { return Array.from(v.replace(/\s+/g, "")).slice(0, MAX_NAME).join(""); }
+function renderNameCells() {
+  const chars = Array.from(ui.nameInput.value.replace(/\s+/g, ""));
+  const cells = ui.nameCells.children;
+  for (let i = 0; i < MAX_NAME; i++) { cells[i].textContent = chars[i] || ""; cells[i].classList.toggle("cur", i === Math.min(chars.length, MAX_NAME - 1) && chars.length < MAX_NAME); }
+  ui.nameOk.disabled = chars.length === 0;
+}
+function openNameScreen() {
+  ui.intro.hidden = true; ui.nameScreen.hidden = false;
+  ui.examNo.textContent = newExamNo();
+  renderNameCells();
+  try { ui.nameInput.focus({ preventScroll: true }); } catch (e) {}
+}
+function submitName() {
+  const name = cleanName(ui.nameInput.value);
+  if (!name) { ui.nameInput.focus(); return; }
+  audioOn(); beginRun(false, name, ui.examNo.textContent);
+}
+ui.nameInput.addEventListener("compositionstart", () => { nameComposing = true; });
+ui.nameInput.addEventListener("compositionend", () => { nameComposing = false; const c = cleanName(ui.nameInput.value); if (c !== ui.nameInput.value) ui.nameInput.value = c; renderNameCells(); });
+ui.nameInput.addEventListener("input", (e) => {
+  if (!nameComposing && !e.isComposing) { const c = cleanName(ui.nameInput.value); if (c !== ui.nameInput.value) ui.nameInput.value = c; }
+  renderNameCells();
+});
+ui.nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); submitName(); } });
+ui.nameOk.addEventListener("click", submitName);
+ui.nameBack.addEventListener("click", () => { ui.nameScreen.hidden = true; ui.intro.hidden = false; });
+ui.startBtn.addEventListener("click", () => { audioOn(); openNameScreen(); });
+ui.resumeBtn.addEventListener("click", () => { audioOn(); beginRun(true); });
+
+/* ================= 시작 ================= */
+function redrawText() { drawBoard(); drawPoster(); drawClock(toMin("08:10")); drawPaper(); drawOMR(); }
+function start() {
+  placeMain(); placeBack();
+  redrawText(); resize(); requestAnimationFrame(frame);
+  const all = Object.values(BANK).flat().map((q) => (q.p || "") + q.q + q.o.join("") + (q.n || "")).join("") + SCHED.map((s) => (s.subj || "") + (s.label || "") + (s.sel || "") + (s.say || "")).join("") +
+    "넘기고싶은마음은정상입니다넘기면부정행위김밥옆구리터짐주의화장실은감독관허락후에매점은없다2027학년도대학딸깍능력시험문제지홀수형답안지제교시휴대폰스마트안경제출수험생유의사항반입금지착용만해도부정행위확인하시오해당란에표기했는지※①②③④0123456789:~·!/()대화를잘듣고답하시오방송중자막을보시오시작종이울리기전에넘기지마시오않아도이미당신을보았다점심쉬는시간도시락은자리에서벗지자리를비우지아무도않았다덮어두시오";
+  try {
+    Promise.all([
+      document.fonts.load(`800 46px "Nanum Myeongjo"`, all), document.fonts.load(`700 35px "Nanum Myeongjo"`, all),
+      document.fonts.load(`600 40px "IBM Plex Sans KR"`, all), document.fonts.load(`700 24px "IBM Plex Sans KR"`, all),
+      document.fonts.load(`400 60px "Black Han Sans"`, all)
+    ]).then(redrawText, redrawText);
+  } catch (e) {}
+}
+window.addEventListener("resize", resize);
+try { if (window.ResizeObserver) new ResizeObserver(resize).observe(ui.app); } catch (e) {}
+try { window.claude?.hot?.snapshot?.(() => ({})); } catch (e) {}
+if (window.claude?.hot?.ready) window.claude.hot.ready(start); else start();
+})();
+</script>
+</body>
+</html>
