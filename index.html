@@ -175,9 +175,11 @@ button{font:inherit;color:inherit}
 .stats div:nth-last-child(-n+2){border-bottom:0}
 .stats dt{font-size:11px;color:var(--muted)}
 .stats dd{margin:0;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
-.title-card{border:2px solid var(--omr);border-radius:10px;padding:10px 12px;background:var(--omr-tint)}
-.title-card .k{font-size:11px;font-weight:700;color:var(--omr)}
-.title-card strong{display:block;font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.2}
+.titles{display:grid;gap:7px}
+.titles-head{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--omr)}
+.title-card{border:2px solid var(--omr);border-radius:10px;padding:9px 12px;background:var(--omr-tint)}
+.title-card strong{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:400;font-size:22px;line-height:1.2}
+.title-card strong em{font-style:normal;font-family:var(--f-ui, sans-serif);font-size:11px;font-weight:700;color:#fff;background:var(--omr);border-radius:999px;padding:2px 7px;letter-spacing:.04em}
 .title-card p{margin:2px 0 0;font-size:13.5px}
 .note{font-size:12px;color:var(--muted);text-align:center;margin:0}
 .eerie{font-family:var(--f-exam);font-weight:800;font-size:14px;text-align:center;margin:0;color:#7A2E3A}
@@ -324,7 +326,16 @@ const BANK = {
     { q: "윤동주의 「서시」 끝에 적힌 날짜는?", o: ["1941년 11월 5일", "1941년 11월 20일", "1942년 6월 3일", "1945년 2월 16일"], a: 1, w: "「서시」 1941.11.20. · 11월 5일은 「별 헤는 밤」" },
     { q: "윤동주의 「서시」는 모두 몇 연 몇 행인가?", o: ["1연 8행", "2연 9행", "2연 10행", "3연 9행"], a: 1, w: "「서시」는 2연 9행" },
     { q: "‘짜장면’이 ‘자장면’과 함께 복수 표준어로 인정된 날은?", o: ["2009년 10월 9일", "2011년 8월 31일", "2013년 1월 1일", "2014년 12월 15일"], a: 1, w: "2011.8.31 국립국어원 발표" },
-    { q: "2011년 8월, ‘짜장면’과 함께 표준어로 인정된 항목은 모두 몇 개인가?", o: ["13개", "25개", "39개", "54개"], a: 2, w: "짜장면·먹거리·택견 등 39개 항목" }
+    { q: "2011년 8월, ‘짜장면’과 함께 표준어로 인정된 항목은 모두 몇 개인가?", o: ["13개", "25개", "39개", "54개"], a: 2, w: "짜장면·먹거리·택견 등 39개 항목" },
+    { q: "김소월이 생전에 낸 유일한 시집 『진달래꽃』(1925)에 실린 시는 모두 몇 편인가?", o: ["88편", "100편", "127편", "204편"], a: 2, w: "1925년 매문사 · 127편을 16부로 나눠 실음" },
+    { q: "한용운의 시집 『님의 침묵』(1926)에 실린 시는 모두 몇 편인가?", o: ["33편", "64편", "88편", "108편"], a: 2, w: "1926년 회동서관 · 전체 88편" },
+    { q: "최인훈 「광장」에서 이명준이 중립국 인도로 가며 탄 배의 이름은?", o: ["간디호", "타고르호", "네루호", "갠지스호"], a: 1, w: "중립국 인도로 가는 타고르호" },
+    { q: "이상 「오감도 시제1호」에서 도로로 질주하는 아해는 모두 몇 명인가?", o: ["7인", "12인", "13인", "15인"], a: 2, w: "13인의 아해가 도로로 질주" },
+    { q: "이상의 「오감도」가 1934년 『조선중앙일보』 연재 도중 중단된 이유는?", o: ["일제의 검열", "독자들의 항의", "작가의 입원", "신문사 폐간"], a: 1, w: "난해하다는 독자 투서가 빗발쳐 예정의 절반만 연재" },
+    { q: "김만중 「구운몽」에서 양소유가 맞은 여덟 부인 가운데 정식 부인(처)은 몇 명인가?", o: ["1명", "2명", "4명", "8명"], a: 1, w: "2처 6첩 = 팔선녀" },
+    { q: "다음 중 2015년에 표준어로 인정된 말은?", o: ["짜장면", "간지럽히다", "삐지다", "이쁘다"], a: 3, w: "이쁘다 2015 · 삐지다 2014 · 짜장면·간지럽히다 2011" },
+    { q: "윤동주 유고 시집 『하늘과 바람과 별과 시』 초판(1948)에 실린 시는 모두 몇 편인가?", o: ["19편", "31편", "62편", "93편"], a: 1, w: "1948.1.30 정음사 · 31편 (자선 원고 19편 + 강처중 보관 12편)" },
+    { q: "김소월 「진달래꽃」에서 진달래꽃을 따 오는 곳은 어느 산인가?", o: ["묘향산", "약산", "금강산", "백두산"], a: 1, w: "영변의 약산" }
   ],
   /* 사람이 못 푸는 수학 (h: 스캔이 오래 걸림) — 답은 모두 계산으로 검증함 */
   mathA: [
@@ -338,7 +349,18 @@ const BANK = {
     { q: "2027²⁰²⁷ 은 몇 자리 수인가?", o: ["2027자리", "4054자리", "6703자리", "6704자리"], a: 2, h: 1, w: "2027 × log₁₀2027 = 6702.99… → 6703자리" },
     { q: "1¹ + 2² + 3³ + … + 100¹⁰⁰ 의 마지막 두 자리는?", o: ["00", "20", "50", "76"], a: 1, h: 1, w: "각 항을 100으로 나눈 나머지만 더하면 → 20" },
     { q: "e^π − π 에 가장 가까운 정수는?", o: ["19", "20", "21", "23"], a: 1, h: 1, w: "e^π − π = 19.99909997… → 20" },
-    { q: "lim(n→∞) (1 + 1/n)^(n²) · e^(−n) 의 값은?", o: ["0", "1", "1/√e", "e"], a: 2, h: 1, w: "로그를 취하면 −1/2로 수렴 → 1/√e" }
+    { q: "lim(n→∞) (1 + 1/n)^(n²) · e^(−n) 의 값은?", o: ["0", "1", "1/√e", "e"], a: 2, h: 1, w: "로그를 취하면 −1/2로 수렴 → 1/√e" },
+    { q: "피보나치 수열의 100번째 항 F₁₀₀ 의 각 자리 숫자의 합은?", o: ["87", "93", "101", "114"], a: 1, h: 1, w: "F₁₀₀ = 354224848179261915075 → 합 93" },
+    { q: "1/2027 을 소수로 나타낼 때 순환마디의 길이는?", o: ["1013", "2026", "507", "2027"], a: 0, h: 1, w: "10의 위수(mod 2027) = 1013" },
+    { q: "√2 의 소수점 아래 100번째 자리 숫자는?", o: ["1", "4", "7", "9"], a: 2, h: 1, w: "√2 = 1.41421356… → 100번째 자리 7" },
+    { q: "자연상수 e 의 소수점 아래 100번째 자리 숫자는?", o: ["2", "4", "7", "8"], a: 1, h: 1, w: "e = 2.71828… → 100번째 자리 4" },
+    { q: "2027번째 소수는?", o: ["17599", "17627", "17713", "18041"], a: 1, h: 1, w: "p₂₀₂₇ = 17627" },
+    { q: "7^(7^7) 의 마지막 세 자리는?", o: ["343", "543", "807", "007"], a: 0, h: 1, w: "7^823543 ≡ 343 (mod 1000)" },
+    { q: "100 이하의 소수를 모두 곱한 수는 몇 자리 수인가?", o: ["25자리", "31자리", "37자리", "43자리"], a: 2, h: 1, w: "소수 25개의 곱 = 2305567963945518424753102147331756070 → 37자리" },
+    { q: "1부터 2027까지 각 수의 약수 개수를 모두 더하면?", o: ["14983", "15749", "16210", "20270"], a: 1, h: 1, w: "Σ d(n) = Σ ⌊2027/k⌋ = 15749" },
+    { q: "φ = (1+√5)/2 일 때, φ²⁰ 에 가장 가까운 정수는?", o: ["6765", "10946", "15127", "17711"], a: 2, h: 1, w: "φ²⁰ ≈ 15126.99993 → 15127 (뤼카 수 L₂₀)" },
+    { q: "∫₀¹ xˣ dx 의 값에 가장 가까운 것은?", o: ["0.6931", "0.7834", "0.8660", "0.9159"], a: 1, h: 1, w: "급수 Σ(−1)ⁿ⁺¹/nⁿ = 0.78343…" },
+    { q: "1 ≤ n ≤ 100 인 자연수 n 중 n² + 1 이 소수인 것은 몇 개인가?", o: ["13개", "19개", "25개", "31개"], a: 1, h: 1, w: "n = 1, 2, 4, 6, 10, … , 90, 94 → 19개" }
   ],
   mathC: [
     { q: "1부터 2027까지의 자연수를 모두 쓸 때, 숫자 7은 모두 몇 번 쓰이는가?", o: ["503번", "583번", "603번", "703번"], a: 2, w: "자리별로 세면 → 603번" },
@@ -346,13 +368,28 @@ const BANK = {
     { q: "2026년 11월 19일부터 2027년 1월 1일까지는 며칠인가?", o: ["41일", "42일", "43일", "44일"], a: 2, w: "11월 남은 11일 + 12월 31일 + 1일 = 43일" },
     { q: "하루(24시간) 동안 시침과 분침이 정확히 겹치는 횟수는?", o: ["12번", "22번", "23번", "24번"], a: 1, w: "720/11분마다 한 번 → 하루 22번" },
     { q: "1부터 100까지의 자연수 중 각 자리 숫자의 합이 7인 수는 몇 개인가?", o: ["6개", "7개", "8개", "9개"], a: 2, w: "7, 16, 25, 34, 43, 52, 61, 70 → 8개" },
-    { q: "2027을 2진법으로 나타냈을 때, 1은 모두 몇 개인가?", o: ["7개", "8개", "9개", "10개"], a: 2, w: "2027 = 11111101011₍₂₎ → 1이 9개" }
+    { q: "2027을 2진법으로 나타냈을 때, 1은 모두 몇 개인가?", o: ["7개", "8개", "9개", "10개"], a: 2, w: "2027 = 11111101011₍₂₎ → 1이 9개" },
+    { q: "2027! 의 끝자리에 연속으로 붙는 0은 몇 개인가?", o: ["405개", "486개", "505개", "2027개"], a: 2, w: "405 + 81 + 16 + 3 = 505" },
+    { q: "tan1° × tan2° × tan3° × … × tan89° 의 값은?", o: ["0", "1", "√3", "89"], a: 1, w: "tanθ × tan(90°−θ) = 1 끼리 짝지으면 1" },
+    { q: "1부터 1000까지의 자연수 중 2, 3, 5, 7 어느 것으로도 나누어떨어지지 않는 수는 몇 개인가?", o: ["208개", "228개", "248개", "268개"], a: 1, w: "포함배제 원리 → 228개" },
+    { q: "1부터 2027까지 모든 자연수를 이어 쓰면 숫자는 모두 몇 개 쓰게 되는가?", o: ["6029개", "7001개", "8108개", "8111개"], a: 1, w: "9 + 180 + 2700 + 4×1028 = 7001" },
+    { q: "2027년 1월 1일은 무슨 요일인가?", o: ["목요일", "금요일", "토요일", "일요일"], a: 1, w: "2026.1.1 목요일 + 365일 → 금요일" },
+    { q: "2027년에 ‘13일의 금요일’은 몇 번 있는가?", o: ["0번", "1번", "2번", "3번"], a: 1, w: "8월 13일 한 번뿐" },
+    { q: "주사위 3개를 던져 눈의 합이 10이 되는 경우는 모두 몇 가지인가? (순서 구분)", o: ["21가지", "25가지", "27가지", "36가지"], a: 2, w: "직접 세면 27가지" },
+    { q: "100! 을 소인수분해했을 때 7은 몇 번 곱해져 있는가?", o: ["14번", "16번", "18번", "21번"], a: 1, w: "⌊100/7⌋ + ⌊100/49⌋ = 14 + 2 = 16" },
+    { q: "5×5 바둑판 모양 격자 안에서 찾을 수 있는 정사각형은 모두 몇 개인가?", o: ["25개", "50개", "55개", "100개"], a: 2, w: "25 + 16 + 9 + 4 + 1 = 55" }
   ],
   engL: [
     { L: ["M: My locker code is three, seven, two, nine, one.", "W: Why are you telling me that?"], q: "대화를 듣고, 남자의 사물함 비밀번호 다섯 숫자를 모두 더한 값을 고르시오.", o: ["19", "21", "22", "24"], a: 2, w: "3 + 7 + 2 + 9 + 1 = 22" },
     { L: ["W: Today I had three coffees, two energy drinks, and one banana milk.", "M: That explains the shaking."], q: "대화를 듣고, 여자가 오늘 마신 음료는 모두 몇 개인지 고르시오.", o: ["3개", "5개", "6개", "7개"], a: 2, w: "3 + 2 + 1 = 6개" },
     { L: ["M: Take bus number seven, zero, one, two.", "W: Seven, zero, one, two. Got it."], q: "대화를 듣고, 남자가 말한 버스 번호를 거꾸로 읽은 수를 고르시오.", o: ["2107", "2170", "7012", "1207"], a: 0, w: "7012 → 거꾸로 2107" },
-    { L: ["W: The exam ends at four thirty-seven.", "M: So that's how many minutes after four?"], q: "대화를 듣고, 시험 종료 시각이 4시 정각에서 몇 분 뒤인지 고르시오.", o: ["7분", "30분", "37분", "47분"], a: 2, w: "4:37 → 37분 뒤" }
+    { L: ["W: The exam ends at four thirty-seven.", "M: So that's how many minutes after four?"], q: "대화를 듣고, 시험 종료 시각이 4시 정각에서 몇 분 뒤인지 고르시오.", o: ["7분", "30분", "37분", "47분"], a: 2, w: "4:37 → 37분 뒤" },
+    { L: ["W: My new phone number ends in four, eight, one, six.", "M: Let me write that down."], q: "대화를 듣고, 여자의 전화번호 끝 네 자리 숫자를 모두 더한 값을 고르시오.", o: ["17", "18", "19", "21"], a: 2, w: "4 + 8 + 1 + 6 = 19" },
+    { L: ["M: Two sandwiches and one orange juice, please.", "W: Sandwiches are four dollars each, and the juice is three."], q: "대화를 듣고, 남자가 내야 할 금액을 고르시오.", o: ["$7", "$8", "$11", "$12"], a: 2, w: "4 × 2 + 3 = 11달러" },
+    { L: ["W: The train leaves at nine forty-seven.", "M: And it arrives at eleven oh five? That is a long ride."], q: "대화를 듣고, 기차를 타는 시간은 모두 몇 분인지 고르시오.", o: ["68분", "78분", "82분", "118분"], a: 1, w: "9:47 → 11:05 = 78분" },
+    { L: ["M: How do you spell your name?", "W: K, A, T, H, R, Y, N. Kathryn."], q: "대화를 듣고, 여자 이름의 철자 중 네 번째 글자를 고르시오.", o: ["T", "H", "R", "Y"], a: 1, w: "K-A-T-H → 네 번째는 H" },
+    { L: ["W: Take the elevator to the twelfth floor.", "M: And then walk down three floors. Got it."], q: "대화를 듣고, 남자가 최종적으로 도착할 층을 고르시오.", o: ["3층", "9층", "12층", "15층"], a: 1, w: "12층에서 세 층 내려가면 9층" },
+    { L: ["M: I have three older brothers.", "W: And each of them has two sons? Your family is huge."], q: "대화를 듣고, 남자의 조카(형들의 아들)는 모두 몇 명인지 고르시오.", o: ["2명", "5명", "6명", "9명"], a: 2, w: "3명 × 2명 = 6명" }
   ],
   engR: [
     { q: "미국 50개 주(州)의 이름 어디에도 쓰이지 않는 알파벳은?", o: ["J", "Q", "X", "Z"], a: 1, w: "Q만 없음 · J는 New Jersey, Z는 Arizona에만" },
@@ -361,7 +398,17 @@ const BANK = {
     { p: "The quick brown fox jumps over the lazy dog.", q: "알파벳 26자를 모두 쓴 위 문장의 알파벳 글자 수는? (띄어쓰기·마침표 제외)", o: ["26글자", "33글자", "35글자", "43글자"], a: 2, w: "알파벳만 세면 35글자" },
     { q: "A=1, B=2, …, Z=26일 때, ENGLISH의 각 글자 값을 모두 더하면?", o: ["68", "71", "74", "79"], a: 2, w: "5+14+7+12+9+19+8 = 74" },
     { q: "영어 단어 ‘strengths’에 쓰인 모음 글자(a, e, i, o, u)는 몇 개인가?", o: ["0개", "1개", "2개", "3개"], a: 1, w: "s-t-r-e-n-g-t-h-s → e 하나뿐" },
-    { q: "‘Mississippi’에서 알파벳 s는 몇 번 쓰였는가?", o: ["2번", "3번", "4번", "5번"], a: 2, w: "Mi-ss-i-ss-ippi → 4번" }
+    { q: "‘Mississippi’에서 알파벳 s는 몇 번 쓰였는가?", o: ["2번", "3번", "4번", "5번"], a: 2, w: "Mi-ss-i-ss-ippi → 4번" },
+    { p: "floccinaucinihilipilification", q: "‘쓸모없다고 여기는 일’이라는 뜻의 위 단어는 모두 몇 글자인가?", o: ["27글자", "29글자", "31글자", "33글자"], a: 1, w: "직접 세면 29글자" },
+    { p: "antidisestablishmentarianism", q: "위 단어는 모두 몇 글자인가?", o: ["26글자", "28글자", "30글자", "32글자"], a: 1, w: "직접 세면 28글자" },
+    { p: "supercalifragilisticexpialidocious", q: "위 단어는 모두 몇 글자인가?", o: ["30글자", "32글자", "34글자", "36글자"], a: 2, w: "직접 세면 34글자" },
+    { q: "zero부터 nine까지 숫자 영단어 10개를 알파벳 순으로 늘어놓으면 맨 앞에 오는 것은?", o: ["eight", "five", "four", "one"], a: 0, w: "eight → five → four → nine → one …" },
+    { q: "영문 자판(QWERTY) 맨 윗줄 글자만으로 칠 수 있는 단어는?", o: ["keyboard", "computer", "typewriter", "internet"], a: 2, w: "t-y-p-e-w-r-i-t-e-r 모두 Q~P 줄" },
+    { q: "‘bookkeeper’에서 같은 글자가 연달아 두 번 나오는 곳은 몇 군데인가?", o: ["1군데", "2군데", "3군데", "4군데"], a: 2, w: "b-oo-kk-ee-per → 3군데" },
+    { q: "다음 중 모음 글자(a, e, i, o, u)가 하나도 없는 단어는?", o: ["rhyme", "rhythm", "rhino", "rather"], a: 1, w: "r-h-y-t-h-m · y만 있음" },
+    { q: "다음 중 모음 a, e, i, o, u가 이 순서대로 한 번씩 들어 있는 단어는?", o: ["education", "sequoia", "facetious", "various"], a: 2, w: "f-a-c-e-t-i-o-u-s" },
+    { q: "A=1, B=2, …, Z=26일 때, SUNEUNG의 각 글자 값을 모두 더하면?", o: ["95", "101", "107", "112"], a: 1, w: "19+21+14+5+21+14+7 = 101" },
+    { q: "일반적인 영어 글에서 가장 자주 쓰이는 알파벳은?", o: ["A", "E", "S", "T"], a: 1, w: "영어 글자 빈도 1위는 E" }
   ],
   his: [
     { q: "조선을 건국한 태조 이성계의 첫째 아들 이방우와 막내아들 이방석의 나이 차는?", o: ["14살", "22살", "28살", "31살"], a: 2, w: "이방우 1354년생, 이방석 1382년생 → 28살" },
@@ -370,7 +417,17 @@ const BANK = {
     { q: "조선에서 재위 기간이 가장 짧았던 인종은 약 몇 개월 동안 왕위에 있었는가?", o: ["약 2개월", "약 8개월", "약 14개월", "약 25개월"], a: 1, w: "약 8개월 재위 · 세자로는 25년" },
     { q: "팔만대장경판은 모두 몇 장인가?", o: ["80,000장", "81,258장", "84,000장", "88,888장"], a: 1, w: "81,258판 · 글자 수 52,330,152자" },
     { q: "거북선이 처음 실전에 나선 해전은?", o: ["옥포 해전", "사천 해전", "한산도 대첩", "명량 해전"], a: 1, w: "1592년 5월 29일 사천 해전에서 첫 출격" },
-    { q: "1991년, 한글날과 함께 공휴일에서 빠진 날은?", o: ["개천절", "국군의 날", "제헌절", "식목일"], a: 1, w: "1991년 국군의 날과 함께 공휴일 제외" }
+    { q: "1991년, 한글날과 함께 공휴일에서 빠진 날은?", o: ["개천절", "국군의 날", "제헌절", "식목일"], a: 1, w: "1991년 국군의 날과 함께 공휴일 제외" },
+    { q: "조선왕조실록(태조~철종)의 전체 분량은?", o: ["888권 1,893책", "1,893권 888책", "1,707권 1,187책", "2,077권 848책"], a: 1, w: "25대 472년 · 1,893권 888책" },
+    { q: "명량 해전에서 이순신이 이끈 조선 수군의 판옥선은 몇 척이었나?", o: ["12척", "13척", "31척", "133척"], a: 1, w: "판옥선 13척 vs 일본 133척" },
+    { q: "김정호의 대동여지도(1861)는 모두 몇 첩으로 되어 있는가?", o: ["8첩", "16첩", "22첩", "27첩"], a: 2, w: "남북 22층을 22첩으로 · 다 펼치면 세로 약 6.6m" },
+    { q: "1919년 2월 27일 밤 보성사에서 인쇄한 독립선언서는 모두 몇 장인가?", o: ["3,300장", "10,000장", "21,000장", "35,000장"], a: 2, w: "재판 기록상 27일 밤 21,000매" },
+    { q: "1997년 국립경주박물관이 처음 실제로 잰 성덕대왕신종의 무게는?", o: ["12.0톤", "18.9톤", "24.0톤", "30.0톤"], a: 1, w: "18.9톤 · 그전엔 막연히 24톤쯤으로 추정" },
+    { q: "경주 첨성대의 원통형 몸체는 돌을 몇 단으로 쌓았는가?", o: ["12단", "24단", "27단", "29단"], a: 2, w: "27단 · 선덕여왕이 27대라는 해석도 있음" },
+    { q: "조선 문과 식년시 최종 합격자 33명 중 ‘병과’는 몇 명인가?", o: ["3명", "7명", "10명", "23명"], a: 3, w: "갑과 3 · 을과 7 · 병과 23" },
+    { q: "1795년 정조의 화성 행차(을묘원행)는 며칠 동안 이어졌는가?", o: ["3일", "5일", "8일", "15일"], a: 2, w: "윤2월 9일~16일 · 7박 8일" },
+    { q: "1770년 영조 때 다시 만든 측우기의 깊이는?", o: ["1척", "1척 5촌", "2척", "3척"], a: 1, w: "깊이 1척 5촌 · 지름 7촌" },
+    { q: "2008년 2월 10일 숭례문 화재를 처음 신고한 사람은?", o: ["숭례문 경비원", "지나가던 택시 기사", "순찰 중이던 경찰", "남대문시장 상인"], a: 1, w: "오후 8시 50분쯤 택시 기사가 연기를 보고 신고" }
   ],
   eth: [
     { q: "칸트가 매일 산책을 나서 동네 사람들이 시계를 맞췄다는 그 시각은?", o: ["오전 7시", "정오 12시", "오후 3시 30분", "밤 10시"], a: 2, w: "오후 3시 30분 · 루소의 『에밀』 읽느라 거른 날도 있었다고 함" },
@@ -378,14 +435,32 @@ const BANK = {
     { q: "사마천의 『사기』에 기록된 공자의 키는?", o: ["7척 2촌", "8척", "9척 6촌", "10척"], a: 2, w: "9척 6촌 · 사람들이 ‘키다리’라 불렀다고 함" },
     { q: "데카르트가 스웨덴 크리스티나 여왕에게 철학을 가르친 시각은?", o: ["새벽 5시", "오전 10시", "오후 2시", "밤 11시"], a: 0, w: "새벽 5시 · 원래 정오 무렵까지 자던 사람" },
     { q: "맹모삼천지교에서 맹자 가족이 두 번째로 살았던 곳 근처에 있던 것은?", o: ["공동묘지", "시장", "서당", "궁궐"], a: 1, w: "묘지 → 시장 → 서당(학교) 순서" },
-    { q: "맹모삼천지교의 원문대로 세면, 맹자 어머니가 실제로 이사한 횟수는?", o: ["한 번", "두 번", "세 번", "네 번"], a: 1, w: "묘지→시장, 시장→학교: 옮긴 건 두 번, 산 곳이 세 곳" }
+    { q: "맹모삼천지교의 원문대로 세면, 맹자 어머니가 실제로 이사한 횟수는?", o: ["한 번", "두 번", "세 번", "네 번"], a: 1, w: "묘지→시장, 시장→학교: 옮긴 건 두 번, 산 곳이 세 곳" },
+    { q: "디오게네스 라에르티오스가 전한 플라톤의 본명은?", o: ["아리스톤", "아리스토클레스", "아리스토파네스", "플라티노스"], a: 1, w: "‘플라톤’은 ‘넓다’는 뜻의 별명" },
+    { q: "니체가 채찍질당하는 말을 껴안고 쓰러졌다고 전해지는 도시는?", o: ["바젤", "토리노", "나움부르크", "베네치아"], a: 1, w: "1889년 1월 3일 이탈리아 토리노" },
+    { q: "쇼펜하우어가 기른 반려견의 이름은?", o: ["브라만", "아트만", "니르바나", "모나드"], a: 1, w: "아트만 · 인도철학의 ‘참된 자아’" },
+    { q: "사마천 『사기』 「공자세가」에 따르면 공자 제자 3천 명 중 육예에 통달한 사람은?", o: ["12명", "36명", "72명", "300명"], a: 2, w: "「공자세가」 72명 (「중니제자열전」은 77명)" },
+    { q: "율곡 이이가 과거 시험에서 장원한 횟수는?", o: ["3번", "5번", "7번", "9번"], a: 3, w: "구도장원공 · 아홉 번 장원" },
+    { q: "퇴계 이황이 세상을 떠나던 날 아침 남긴 마지막 당부는?", o: ["책을 덮어라", "매화에 물을 주어라", "문을 열어라", "붓을 가져오라"], a: 1, w: "1570년 12월 8일 아침 분매에 물을 주라고 함" },
+    { q: "다산 정약용이 전라도 강진에서 유배 생활을 한 기간은?", o: ["8년", "12년", "18년", "25년"], a: 2, w: "1801년~1818년 · 18년" },
+    { q: "비트겐슈타인 『논리철학논고』에서 정수 번호가 붙은 큰 명제는 모두 몇 개인가?", o: ["5개", "7개", "10개", "12개"], a: 1, w: "명제 1~7 · 마지막 7번이 침묵 명제" },
+    { q: "노자의 『도덕경』(왕필본)은 모두 몇 장으로 되어 있는가?", o: ["49장", "64장", "81장", "108장"], a: 2, w: "81장 · 약 5,000자" }
   ],
   earth: [
     { q: "현재 공식 한라산 높이에 가장 가까운 것은?", o: ["1,915m", "1,947m", "1,950m", "1,967m"], a: 1, w: "1,947.269m · 1,950m는 1901년 측정한 옛 기록" },
     { q: "1901년 한라산 높이를 처음 1,950m로 잰 사람의 국적은?", o: ["미국", "독일", "영국", "일본"], a: 1, w: "독일 신문 특파원 지그프리트 겐테" },
     { q: "2020년 중국과 네팔이 함께 발표한 에베레스트산의 높이는?", o: ["8,844.43m", "8,848m", "8,848.86m", "8,850m"], a: 2, w: "2020년 12월 8일 발표 · 8,848.86m" },
     { q: "1978년 기상청 관측 이래 국내 최대인 2016년 경주 지진의 규모는?", o: ["5.1", "5.4", "5.8", "6.2"], a: 2, w: "2016.9.12 본진 5.8 (같은 날 전진 5.1)" },
-    { q: "명왕성이 행성에서 왜소행성으로 분류가 바뀐 해는?", o: ["1999년", "2003년", "2006년", "2011년"], a: 2, w: "2006년 국제천문연맹(IAU) 총회" }
+    { q: "명왕성이 행성에서 왜소행성으로 분류가 바뀐 해는?", o: ["1999년", "2003년", "2006년", "2011년"], a: 2, w: "2006년 국제천문연맹(IAU) 총회" },
+    { q: "2018년 강원 홍천의 41.0℃ 국내 최고 기온 기록을 2026년 여름에 깨뜨린 지역은?", o: ["대구", "밀양", "양산", "의성"], a: 2, w: "2026.7.31 경남 양산 41.4℃ → 이튿날 41.6℃" },
+    { q: "남한 기상 관측 사상 가장 낮은 기온(−32.6℃)이 기록된 곳은?", o: ["철원", "대관령", "양평", "제천"], a: 2, w: "1981년 1월 5일 경기 양평" },
+    { q: "독도 서도(168.5m) 꼭대기 봉우리의 공식 지명은?", o: ["우산봉", "대한봉", "독립봉", "석도봉"], a: 1, w: "서도 대한봉 · 동도(98.6m)는 우산봉" },
+    { q: "금성이 한 바퀴 자전하는 데 걸리는 시간은 지구 시간으로 약 며칠인가?", o: ["88일", "117일", "225일", "243일"], a: 3, w: "자전 243일 > 공전 225일 · 하루가 1년보다 김" },
+    { q: "핼리 혜성이 다음으로 근일점에 오는 해는?", o: ["2048년", "2061년", "2076년", "2086년"], a: 1, w: "2061년 7월 28일 예정 · 지난번은 1986년" },
+    { q: "달은 지구에서 1년에 약 얼마씩 멀어지고 있는가?", o: ["0.38mm", "3.8cm", "38cm", "3.8m"], a: 1, w: "아폴로 반사경 레이저 측정 · 연 3.8cm" },
+    { q: "북서태평양 태풍 이름 140개 가운데 한글 이름은 몇 개인가?", o: ["10개", "14개", "20개", "28개"], a: 2, w: "14개 회원국이 10개씩 · 한국 10 + 북한 10" },
+    { q: "화성의 하루(1솔)의 길이는?", o: ["23시간 56분 4초", "24시간 39분 35초", "24시간 37분 22초", "25시간 12분"], a: 1, w: "태양일 24시간 39분 35초 (항성일은 24시간 37분 22초)" },
+    { q: "지구가 별을 기준으로 한 바퀴 자전하는 시간(항성일)은?", o: ["23시간 56분 4초", "24시간 정각", "24시간 3분 56초", "23시간 59분 59초"], a: 0, w: "항성일 23시간 56분 4초 · 태양일보다 약 4분 짧음" }
   ]
 };
 
@@ -977,7 +1052,7 @@ function newRun() {
     qs[def.id] = list.map((q) => { const idx = shuffle([0, 1, 2, 3]); return { p: q.p, q: q.q, n: q.n, L: q.L, h: q.h || 0, w: q.w || "", o: idx.map((i) => q.o[i]), a: idx.indexOf(q.a), ai: null, conf: 0, scanned: false }; });
     ans[def.id] = Array(def.n).fill(null);
   }
-  return { seg: 0, qs, ans, battery: 100, susp: 0, maxSusp: 0, scans: 0, fooled: 0, charged: 0, erasers: 3, thrown: 0 };
+  return { seg: 0, qs, ans, battery: 100, susp: 0, maxSusp: 0, scans: 0, fooled: 0, charged: 0, erasers: 3, thrown: 0, woke: 0, zero: false, lunchCharged: 0 };
 }
 let hintTimer = 0, firstExam = true;
 const nm = () => (RUN && RUN.name ? RUN.name : "수험생");
@@ -1119,7 +1194,7 @@ function showAns() {
   q.ai = Math.random() < D.halluc ? pick([0, 1, 2, 3].filter((i) => i !== q.a)) : q.a;
   q.conf = Math.floor(rand(91, 100));
   q.scanned = true; q.nScan = (q.nScan || 0) + 1;
-  RUN.scans++; RUN.battery = Math.max(0, RUN.battery - D.cost);
+  RUN.scans++; RUN.battery = Math.max(0, RUN.battery - D.cost); if (RUN.battery <= 0) RUN.zero = true;
   P.scanning = false; P.hudOn = true; P.hudT = 3.6;
   ui.glass.classList.remove("on"); ui.led.classList.remove("on"); ui.glass.style.setProperty("--p", 0); ui.centerMsg.hidden = true;
   // 정답이면 진짜 근거, 오답이면 '왠지 그럴 거 같음'
@@ -1230,7 +1305,7 @@ function distract(p, x, z, dur) {
   if (p.state !== "distract") p.resumeListen = p.state === "listen" || p.state === "listenB";
   p.state = "distract"; p.t = dur + (woke ? 0.4 : 0); p.route = []; p.after = null; p.checking = false; p.moving = false;
   p.spotX = x; p.spotZ = z; p.target = Math.atan2(x - p.x, z - p.z); p.headYaw = 0; p.cone = { h: 0.7, r: 10 }; p.pose = "idle";
-  if (woke) { speak(p, "흡! (소리에 깼다)", 1.6); sfx("stir", p); }
+  if (woke) { RUN.woke = (RUN.woke || 0) + 1; speak(p, "흡! (소리에 깼다)", 1.6); sfx("stir", p); }
   else if (p.kind === "main") speak(p, "(소리 난 쪽을 본다)", 1.6);
 }
 
@@ -1319,6 +1394,39 @@ function updateCine(dt) {
 }
 
 /* ================= 결과 ================= */
+const TITLE_KEY = "mollae-suneung-titles";
+const TITLES = [
+  ["인류 역사상 최고 GOAT", (t) => t.used === 0 && t.correct === t.total, (t) => `안경 한 번 안 쓰고 ${t.total}문항을 다 맞혔어요. 이 안경 왜 샀어요?`],
+  ["양심과 성적의 등가교환", (t) => t.used > 0 && t.correct === t.total, (t) => `안경을 쓰고 ${t.total}문항을 다 맞혔어요. 양심은 교실 밖에 두고 왔어요.`],
+  ["내가 안경인지 안경이 나인지", (t) => t.used === t.total, (t) => `${t.total}문항 전부 안경으로 풀었어요.`],
+  ["강심장", (t) => t.maxS >= 90, (t) => `의심도 ${t.maxS}%까지 갔다가 살아남았어요.`],
+  ["눈치 빠른 녀석", (t) => t.maxS <= 10, (t) => `의심도가 한 번도 10%를 넘지 않았어요. 최고 ${t.maxS}%.`],
+  ["지우개 빌런", (t) => t.thrown >= 10, (t) => `지우개를 ${t.thrown}번 던졌어요. 감독관 허리가 걱정돼요.`],
+  ["속았음 청년", (t) => t.wrongScanned >= 3, (t) => `안경을 쓰고도 ${t.wrongScanned}문항을 틀렸어요.`],
+  ["AI 감별사", (t) => t.caughtAI >= 3, (t) => `AI가 틀린 답을 띄웠는데 ${t.caughtAI}번이나 안 속고 정답을 골랐어요.`],
+  ["의심병 말기", (t) => t.maxScan >= 3, (t) => `한 문제를 ${t.maxScan}번이나 스캔했어요.`],
+  ["부감독 알람시계", (t) => t.woke >= 3, (t) => `졸던 부감독을 ${t.woke}번 깨웠어요.`],
+  ["밥보다 충전", (t) => t.lunch >= 50, (t) => `점심시간에 밥 대신 배터리를 ${t.lunch}% 채웠어요.`],
+  ["배터리 0%의 기적", (t) => t.zero, () => "배터리가 0%가 됐는데도 끝까지 버텼어요."],
+  ["수포자", (t) => t.mathCorrect === 0, (t) => `수학 ${t.mathTotal}문항을 하나도 못 맞혔어요.`],
+  ["안경없이는 못살아", (t) => t.used >= 20 && t.used < t.total, (t) => `${t.total}문항 중 ${t.used}문항을 안경으로 풀었어요.`],
+  ["반쯤 사이보그", (t) => t.used >= 10 && t.used < 20, (t) => `${t.total}문항 중 ${t.used}문항을 안경으로 풀었어요. 반은 아직 사람이에요.`],
+  ["기초적인 임플란트", (t) => t.used >= 1 && t.used < 10, (t) => `${t.total}문항 중 ${t.used}문항에만 안경을 살짝 썼어요.`],
+  ["자연인", (t) => t.used === 0 && t.correct < t.total, () => "안경을 한 번도 안 썼어요. 점수도 자연스러웠어요."]
+];
+function loadTitles() { try { const a = JSON.parse(localStorage.getItem(TITLE_KEY) || "[]"); return new Set(Array.isArray(a) ? a : []); } catch (e) { return new Set(); } }
+function runStats(r, maxS) {
+  const t = { total: 0, correct: 0, used: 0, wrongScanned: 0, caughtAI: 0, maxScan: 0, mathCorrect: 0, mathTotal: 0, maxS,
+              thrown: r.thrown || 0, woke: r.woke || 0, zero: !!r.zero, lunch: Math.round(r.lunchCharged || 0) };
+  for (const id of Object.keys(r.qs)) r.qs[id].forEach((q, i) => {
+    const ok = r.ans[id][i] === q.a;
+    t.total++; if (ok) t.correct++;
+    if (q.scanned) { t.used++; if (!ok) t.wrongScanned++; if (ok && q.ai !== undefined && q.ai !== q.a) t.caughtAI++; }
+    t.maxScan = Math.max(t.maxScan, q.nScan || 0);
+    if (id === "math") { t.mathTotal++; if (ok) t.mathCorrect++; }
+  });
+  return t;
+}
 const gradeOf = (c, n) => { const r = c / n; return r >= 1 ? 1 : r >= 0.8 ? 2 : r >= 0.66 ? 3 : r >= 0.5 ? 4 : r >= 0.33 ? 6 : r > 0 ? 8 : 9; };
 function showResult(kind, r, cc) {
   const again = `<div class="btns"><button class="primary" type="button" id="againBtn">다시 응시하기</button><button class="secondary" type="button" id="homeBtn">처음 화면으로</button></div>`;
@@ -1355,16 +1463,16 @@ function showResult(kind, r, cc) {
     const avg = sum / total, maxS = Math.round(r.maxSusp);
     const isBest = best === null || avg < best;
     if (isBest) { best = avg; try { localStorage.setItem(BEST_KEY, JSON.stringify(best)); } catch (e) {} }
-    let title;
-    if (used === 0 && avg <= 2) title = ["진짜 실력자", "안경은 그냥 안경이었어요. 감독관도 할 말이 없어요."];
-    else if (r.fooled >= 3) title = ["AI 맹신러", `AI가 자신 있게 틀린 답을 ${r.fooled}번이나 그대로 옮겨 적었어요.`];
-    else if ((r.thrown || 0) >= 3 && maxS < 70) title = ["지우개 투수", "지우개 세 개로 감독관 시선을 전부 돌렸어요. 마킹 수정은 포기했어요."];
-    else if (maxS >= 85) title = ["강심장", `의심도 ${maxS}%까지 갔다가 살아남았어요.`];
-    else if (used >= 20) title = ["안경 없인 못 살아", `27문항 중 ${used}문항을 안경으로 풀었어요.`];
-    else if (r.charged >= 120) title = ["충전의 달인", `쉬는시간마다 들키지 않고 ${Math.round(r.charged)}%를 채웠어요.`];
-    else if (avg >= 7) title = ["찍기의 달인", "운에 모든 걸 맡겼어요."];
-    else title = ["무난한 수험생", "감독관은 아무것도 눈치채지 못했어요. 아마도."];
-    track("exam_complete", { title: title[0], avg_grade: Math.round(avg * 10) / 10, glasses_used: used, fooled: r.fooled, max_susp: maxS, erasers: r.thrown || 0 });
+    const st = runStats(r, maxS), owned = loadTitles();
+    const earned = TITLES.filter(([, ok]) => ok(st)).map(([name, , desc]) => ({ name, desc: desc(st), isNew: !owned.has(name) }));
+    if (!earned.length) earned.push({ name: "무난한 수험생", desc: "감독관은 아무것도 눈치채지 못했어요. 아마도.", isNew: false });
+    for (const e of earned) if (TITLES.some(([n]) => n === e.name)) owned.add(e.name);
+    try { localStorage.setItem(TITLE_KEY, JSON.stringify([...owned])); } catch (e) {}
+    const have = TITLES.filter(([n]) => owned.has(n)).length;
+    track("exam_complete", { titles: earned.map((e) => e.name).join(", "), title_count: earned.length, avg_grade: Math.round(avg * 10) / 10, glasses_used: used, fooled: r.fooled, max_susp: maxS, erasers: r.thrown || 0 });
+    for (const e of earned) track("title_earned", { title: e.name, first_time: e.isNew });
+    const titleHtml = `<div class="titles"><div class="titles-head"><span>칭호 ${earned.length}개 획득</span><span>칭호 도감 ${have} / ${TITLES.length}</span></div>` +
+      earned.map((e) => `<div class="title-card${e.isNew ? " new" : ""}"><strong>${esc(e.name)}${e.isNew ? "<em>NEW</em>" : ""}</strong><p>${esc(e.desc)}</p></div>`).join("") + `</div>`;
     ui.result.innerHTML = `
       <div class="report">
         <div class="rep-head"><span>2027학년도 대학딸깍능력시험 성적통지표</span><span>평균 ${avg.toFixed(1)}등급</span></div>
@@ -1375,14 +1483,14 @@ function showResult(kind, r, cc) {
         </table>
         <dl class="stats">
           <div><dt>안경 사용</dt><dd>${used}문항</dd></div>
-          <div><dt>AI 오답에 속음</dt><dd>${r.fooled}번</dd></div>
+          <div><dt>안경 쓰고 틀림</dt><dd>${st.wrongScanned}문항</dd></div>
           <div><dt>최고 의심도</dt><dd>${maxS}%</dd></div>
           <div><dt>몰래 충전</dt><dd>${Math.round(r.charged)}%</dd></div>
           <div><dt>지우개 투척</dt><dd>${r.thrown || 0}개</dd></div>
           <div><dt>남은 배터리</dt><dd>${Math.round(r.battery)}%</dd></div>
         </dl>
       </div>
-      <div class="title-card"><span class="k">칭호</span><strong>${title[0]}</strong><p>${title[1]}</p></div>
+      ${titleHtml}
       <p class="note">${isBest ? "최고 기록이에요." : `최고 기록은 평균 ${best.toFixed(1)}등급이에요.`} 영역마다 문항 수는 실제 수능보다 적어요.</p>
       <p class="eerie">성적표를 받았다. 일단 치킨부터 시키자.</p>
       ${again}`;
@@ -1457,7 +1565,7 @@ function update(dt) {
     }
     if (P.t <= 0) endExam();
   } else if (def.kind === "break" && !P.locked) {
-    if (P.charging) { const before = RUN.battery; RUN.battery = Math.min(100, RUN.battery + D.charge * dt); RUN.charged += RUN.battery - before; }
+    if (P.charging) { const before = RUN.battery; RUN.battery = Math.min(100, RUN.battery + D.charge * dt); RUN.charged += RUN.battery - before; if (P.def.lunch) RUN.lunchCharged = (RUN.lunchCharged || 0) + RUN.battery - before; }
     if (P.peeks.length && P.el >= P.peeks[0]) {
       if (main.state === "away") { P.peeks.shift(); main.state = "prepeek"; main.t = 1.3; sfx("door"); cap("door", `(문 손잡이 돌아가는 소리) ${dirWord(DOOR.x, DOOR.z)}`, 1.6, "warn"); }
     }
