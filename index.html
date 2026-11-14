@@ -151,6 +151,9 @@ button{font:inherit;color:inherit}
 .notice h2{font-size:13px;margin:0 0 6px;text-align:center;letter-spacing:.35em}
 .notice ol{margin:0;padding-left:1.3em;display:grid;gap:2px}
 .notice .warn{color:var(--omr);font-weight:700}
+.notice kbd{font-family:inherit;font-size:11.5px;font-weight:700;line-height:1;display:inline-block;min-width:1.5em;text-align:center;border:1px solid var(--ink);border-bottom-width:2px;border-radius:4px;padding:2px 4px;margin:0 1px;background:#fff;white-space:nowrap}
+.notice .keys{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;margin:4px 0 0;align-items:center}
+.notice .keys dt{white-space:nowrap}.notice .keys dd{margin:0}
 .primary{padding:12px;border-radius:12px;border:2px solid var(--ink);background:var(--omr);color:#fff;font-family:var(--f-display);font-size:24px;letter-spacing:.04em;box-shadow:3px 3px 0 var(--ink);cursor:pointer}
 .primary:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
 .primary:disabled{opacity:.5;cursor:not-allowed}
@@ -307,6 +310,18 @@ button{font:inherit;color:inherit}
         <li>의심도가 100%가 되면 <span class="warn">적발</span>이에요. 오늘 본 시험 전체가 무효예요.</li>
         <li>AI도 가끔 자신 있게 틀려요. 답이 수상하면 <b>다시 스캔</b>하세요.</li>
         <li>이건 게임이에요. 실제 시험에선 <b>절대</b> 스마트 안경을 사용하지 마세요.</li>
+        <li><b>PC 단축키</b>
+          <dl class="keys">
+            <dt><kbd>Space</kbd> 꾹</dt><dd>안경 AI 스캔</dd>
+            <dt><kbd>1</kbd>~<kbd>4</kbd></dt><dd>답 고르기</dd>
+            <dt><kbd>E</kbd></dt><dd>지우개 조준 · 던지기</dd>
+            <dt><kbd>Esc</kbd></dt><dd>지우개 조준 취소</dd>
+            <dt><kbd>C</kbd></dt><dd>보조배터리 충전 (쉬는시간·점심시간)</dd>
+            <dt><kbd>W</kbd> <kbd>S</kbd></dt><dd>고개 들기 · 시험지 보기</dd>
+            <dt><kbd>A</kbd> <kbd>D</kbd></dt><dd>왼쪽 · 오른쪽 보기</dd>
+          </dl>
+          방향키 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>도 돼요. 마우스로 끌어서 둘러봐도 돼요.
+        </li>
       </ol>
     </div>
     <p class="note">전체 약 12분 걸려요. 시간이 바뀔 때마다 자동 저장돼요.</p>
