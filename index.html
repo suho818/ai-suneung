@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>딸깍능력시험 3D</title>
 <meta name="description" content="AI 안경 끼고 감독관 몰래 수능 보기. 1교시 국어부터 4교시 탐구까지, 들키면 전부 무효.">
 <meta name="theme-color" content="#ECEAE3">
@@ -56,7 +56,8 @@ window.GA_ID = "G-76ZJ7BERM6";
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
-html,body{height:100%;margin:0}
+html,body{height:100%;margin:0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+input,textarea{-webkit-user-select:text;user-select:text}
 body{background:#141416;color:var(--ink);font-family:var(--f-ui);-webkit-tap-highlight-color:transparent;overscroll-behavior:none;word-break:keep-all;overflow-wrap:anywhere}
 button{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--omr);outline-offset:2px}
@@ -214,7 +215,7 @@ button{font:inherit;color:inherit}
 .share-foot b{color:var(--ink);font-size:12px;font-weight:700;white-space:nowrap}
 .shot{display:flex;flex-direction:column;gap:11px}
 .shot-modal{position:fixed;inset:0;z-index:60;background:rgba(14,14,16,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px}
-.shot-modal img{max-width:min(100%,420px);max-height:72vh;object-fit:contain;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.4);background:var(--paper)}
+.shot-modal img{-webkit-touch-callout:default;max-width:min(100%,420px);max-height:72vh;object-fit:contain;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.4);background:var(--paper)}
 .shot-modal p{margin:0;color:#fff;font-size:13.5px;text-align:center}
 .shot-modal .btns{width:min(100%,420px);grid-template-columns:1fr 1fr}
 .shot-modal button.close{width:min(100%,420px)}
@@ -2361,6 +2362,13 @@ ui.gl.addEventListener("pointerup", endDrag); ui.gl.addEventListener("pointercan
 ui.glass.addEventListener("pointerdown", (e) => { e.preventDefault(); try { ui.glass.setPointerCapture(e.pointerId); } catch (err) {} audioOn(); scanStart(); });
 ["pointerup", "pointercancel", "lostpointercapture"].forEach((ev) => ui.glass.addEventListener(ev, () => { if (P && P.scanning) scanStop(); }));
 ui.glass.addEventListener("contextmenu", (e) => e.preventDefault());
+/* 모바일: 길게 누르기 돋보기·메뉴, 두 번 탭·핀치 확대 막기 (이름 입력칸, 공유 이미지 길게 눌러 저장은 예외) */
+const keepPress = (t) => !!(t && t.closest && t.closest("input, textarea, .shot-modal img"));
+document.addEventListener("contextmenu", (e) => { if (!keepPress(e.target)) e.preventDefault(); });
+document.addEventListener("selectstart", (e) => { if (!keepPress(e.target)) e.preventDefault(); });
+["gesturestart", "gesturechange", "gestureend"].forEach((t) => document.addEventListener(t, (e) => e.preventDefault(), { passive: false }));
+document.addEventListener("touchmove", (e) => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+ui.gl.addEventListener("touchstart", (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false });
 ui.chargeBtn.addEventListener("click", () => {
   if (!P || P.locked || P.def.kind !== "break") return;
   audioOn(); const on = !P.charging; setCharging(on); sfx(on ? "plug" : "unplug");
